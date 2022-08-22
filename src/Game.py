@@ -1,9 +1,8 @@
-from ast import main
 from dataclasses import dataclass
 import pprint
 from typing import Literal
 import gym
-import gym.spaces
+from gym import spaces
 import numpy as np
 
 from Piece import Piece
@@ -67,17 +66,28 @@ class Game(gym.Env):
     def __init__(self) -> None:
         super().__init__()
         self.frame_count = 0
+        self.score = 0.0
 
         # 状態の範囲を定義
         ACTION_NUM = len(self.ACTION_MAP)
-        self.action_space = gym.spaces.Discrete(ACTION_NUM)
+        self.action_space = spaces.Discrete(ACTION_NUM)
+
         # LOW = np.array([np.float32(0)])
         # HIGH = np.array([np.float32(ACTION_NUM - 1)])
         # self.observation_space = gym.spaces.Box(
         #     low=LOW, high=HIGH)
-        self.observation_space = gym.spaces.Box(
+        self.observation_space = spaces.Box(
             low=np.array([0, 0]), high=np.array([10-1, 20-1]))
+        # self.observation_space = spaces.Tuple(
+        #     spaces.Discrete(10), spaces.Discrete(20))
+        # self.observation_space = spaces.Box
+        size = 10*20
+        # -int(-np.log(2**(4*8)*4*4*9*5)/np.log(2))
+        # self.observation_space.shape = np.zeros(size, dtype=int)
 
+        # spaces.Discrete((2**(4*8))*4*4*9*5) # 4x8 board [filled or not], 4*9 active-shape locations, 4 rotation positions, 5 shape types
+
+        # #(np.zeros(2**(4*8)), np.zeros(4*9), np.zeros(4), np.zeros(5))
         self.field = Well()
 
         self.piece = Piece()
@@ -90,7 +100,8 @@ class Game(gym.Env):
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
-        reward: float = 0.0
+        og_score = self.score
+        self.score: float = 0.0
         # is_gameover: bool = False
 
         action_player = self.ACTION_MAP[action_index]
@@ -101,21 +112,23 @@ class Game(gym.Env):
 
         # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
 
-        reward = self._calc_reward()
+        self.score = self._calc_score()
 
         if (self.piece.y <= 1):
-            reward += 10000
+            self.score += 10000
             self.done = True
-            # print(observation, reward, self.done)
-        # if (self.frame_count > 100):
-        #     self.done = True
-        #     reward -= 1000
+            # print(observation, self.score, self.done)
+        if (self.frame_count > 900):
+            self.done = True
+            self.score -= 1000
 
         self.frame_count = next_frame_count
 
+        reward = self.score - og_score
+
         return observation, reward, self.done, {}
 
-    def _calc_reward(self) -> float:
+    def _calc_score(self) -> float:
         r = 0.0
         r -= self.piece.y * 10
         r += self.frame_count * -1
@@ -125,6 +138,7 @@ class Game(gym.Env):
 
     def reset(self):
         self.frame_count = 0
+        self.score = 0.0
         self.field = Well()
         self.piece = Piece(0)
         self.piece_pos_y = self.piece.y
@@ -147,7 +161,7 @@ class Game(gym.Env):
             # self.field.renderWells()
             print(self.piece, self.frame_count)
 
-        pass
+            pass
 
 
 # game = Game()
