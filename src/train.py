@@ -44,4 +44,4 @@ agent.compile(adam_v2.Adam())
 
 history = agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_test.hdf5")
+agent.save_weights("moving_test.hdf5", overwrite=True)

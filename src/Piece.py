@@ -197,4 +197,9 @@ class Piece:
             pass
 
 
+# piece = Piece()
+# while True:
+#     piece.handle_input(input())
+#     print(piece.y)
+
 # print(Piece.unmodified["I"][0])

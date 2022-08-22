@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pprint
 from typing import Literal
 import gym
+import gym.spaces
 import numpy as np
 
 from Piece import Piece
@@ -75,7 +76,7 @@ class Game(gym.Env):
         # self.observation_space = gym.spaces.Box(
         #     low=LOW, high=HIGH)
         self.observation_space = gym.spaces.Box(
-            low=np.array([0, 0]), high=np.array([10, 20]))
+            low=np.array([0, 0]), high=np.array([10-1, 20-1]))
 
         self.field = Well()
 
@@ -102,13 +103,13 @@ class Game(gym.Env):
 
         reward = self._calc_reward()
 
-        if (self.piece.y == 0):
-            self.done = True
+        if (self.piece.y <= 1):
             reward += 10000
-            # print(observation, reward, self.done)
-        if (self.frame_count > 200):
             self.done = True
-            reward -= 10000
+            # print(observation, reward, self.done)
+        # if (self.frame_count > 100):
+        #     self.done = True
+        #     reward -= 1000
 
         self.frame_count = next_frame_count
 
@@ -116,10 +117,10 @@ class Game(gym.Env):
 
     def _calc_reward(self) -> float:
         r = 0.0
-        r += self.piece.y * -100
+        r -= self.piece.y * 10
         r += self.frame_count * -1
-        if (self.piece.y == self.piece_pos_y):
-            r -= 1
+        # if (self.piece.y == self.piece_pos_y):
+        #     r -= 1
         return r
 
     def reset(self):
