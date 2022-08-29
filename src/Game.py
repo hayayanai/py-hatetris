@@ -7,6 +7,8 @@ import numpy as np
 
 from Piece import Piece
 from Well import Well
+from ai.lovetris import Lovetris
+from ai.random import RandomAi
 
 
 class Game(gym.Env):
@@ -17,7 +19,7 @@ class Game(gym.Env):
     frame_count: int
     total_piece: int
     # rng: int
-    VISIBLE_NEXT: int = 1
+    # VISIBLE_NEXT: int = 1
     ACTION_MAP = np.array(["L", "R", "D", "U"])
     done: bool
 
@@ -52,6 +54,8 @@ class Game(gym.Env):
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False
+
+        self.enemy = RandomAi()
 
         self.reset()
 
@@ -131,7 +135,7 @@ class Game(gym.Env):
         move = True
         for y in range(0, 4):
             for x in range(0, 4):
-                if (self.piece.unmodified[self.piece.name][1][y][x] == "#"):
+                if (self.piece.unmodified[self.piece.name][0][y][x] == "#"):
                     try:
                         # 頭を抱える。
                         # if (self.field.cellses[y + self.piece.y][x + self.piece.x].landed or x + self.piece.x < 0 or self.piece.y < -1):
@@ -145,7 +149,7 @@ class Game(gym.Env):
     def _lock_piece(self) -> None:
         for y in range(0, 4):
             for x in range(0, 4):
-                if (self.piece.unmodified[self.piece.name][1][y][x] == "#"):
+                if (self.piece.unmodified[self.piece.name][0][y][x] == "#"):
                     try:  # TODO: Refactor
                         self.field.cellses[y + self.piece.y][x +
                                                              self.piece.x].landed = True
@@ -155,11 +159,11 @@ class Game(gym.Env):
                         pass
 
         self.total_piece += 1
-        self.piece = self.get_next_piece()
+        self.piece = self.get_first_piece()
         self._check_gameover()
 
-    def get_next_piece(self) -> Piece:
-        return Piece(0)
+    def get_first_piece(self) -> Piece:
+        return self.enemy.get_first_piece()
 
     def _check_gameover(self) -> None:
         if (self._is_piece_movable()):
