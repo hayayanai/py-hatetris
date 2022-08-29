@@ -22,8 +22,8 @@ model = Sequential()
 # model = Model(input_, c)
 
 model.add(Flatten(input_shape=input_shape))
-model.add(Dense(units=256, activation="relu"))
-model.add(Dense(units=64, activation="relu"))
+model.add(Dense(units=16, activation="relu"))
+model.add(Dense(units=16, activation="relu"))
 model.add(Dense(units=16, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 # 経験値を蓄積するためのメモリ
@@ -42,8 +42,10 @@ agent.compile(adam_v2.Adam())
 # 学習を開始
 # 100000ステップ実行
 
-history = agent.fit(env, nb_steps=50000, visualize=False, verbose=2)
+history = agent.fit(env, nb_steps=50000, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
 agent.save_weights("moving_test.hdf5", overwrite=True)
 
-agent.test(env, nb_episodes=5, visualize=True)
+i = input()
+
+agent.test(env, nb_episodes=1, visualize=True)

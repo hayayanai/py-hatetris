@@ -12,8 +12,8 @@ input_shape = (window_length,) + env.observation_space.shape
 nb_actions = env.action_space.n
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
-model.add(Dense(units=256, activation="relu"))
-model.add(Dense(units=64, activation="relu"))
+model.add(Dense(units=16, activation="relu"))
+model.add(Dense(units=16, activation="relu"))
 model.add(Dense(units=16, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 model.load_weights("./moving_test.hdf5")
@@ -22,4 +22,4 @@ policy = BoltzmannQPolicy()
 agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
                  nb_steps_warmup=10, target_model_update=1e-2, policy=policy)
 agent.compile(adam_v2.Adam())
-agent.test(env, nb_episodes=5, visualize=True)
+agent.test(env, nb_episodes=1, visualize=True)
