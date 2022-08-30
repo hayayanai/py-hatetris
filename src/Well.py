@@ -58,6 +58,32 @@ class Well:
                     res.append(0)
         return res
 
+    def delete_lines(self) -> None:
+        while self._filled_line() != 1:
+            self._cut_line(self._filled_line())
+
+    def _filled_line(self) -> int:
+        """埋まっている段を一つ返す。なければ-1。
+        """
+        for y in range(Well.wellDepth):
+            is_filled = True
+            for x in range(Well.wellWidth):
+                if self.at(x, y).landed:
+                    is_filled = False
+            if is_filled:
+                return y
+        return -1
+
+    def _cut_line(self, y: int) -> None:
+        if (y <= -1):
+            raise ValueError("Invalid line for this method!")
+        else:
+            del self.cellses[y]
+            cells = []
+            for _ in range(Well.wellWidth):
+                cells.append(Cell(landed=False, live=False))
+            self.cellses.append(cells)
+
     def renderWells(self):
         for y in range(0, self.wellDepth)[::-1]:
             for x in range(0, self.wellWidth):

@@ -175,6 +175,7 @@ class Game(gym.Env):
                         pass
 
         self.total_piece += 1
+        self.field.delete_lines()
         self.piece = self.get_next_piece()
         self._check_gameover()
 
