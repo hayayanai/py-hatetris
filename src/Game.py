@@ -1,5 +1,3 @@
-import pprint
-import sys
 from typing import Literal
 import gym
 from gym import spaces
@@ -9,6 +7,9 @@ from Piece import Piece
 from Well import Well
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
+
+AIs = [Lovetris, RandomAi]
+EnemyAI = RandomAi
 
 
 class Game(gym.Env):
@@ -35,7 +36,7 @@ class Game(gym.Env):
         # self.observation_space = gym.spaces.Box(
         #     low=LOW, high=HIGH)
         self.observation_space = spaces.Box(
-            low=np.array([-2, 0, 0]), high=np.array([Well.wellWidth - 1, 19, 23 * Well.wellWidth - 1]))
+            low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.wellWidth - 1, 23, 3, 23 * Well.wellWidth - 1]))
         # self.observation_space = spaces.Tuple(
         #     (spaces.Discrete(2**(10*23)), spaces.Discrete(10*20)))
         # self.observation_space = spaces.Box
@@ -50,12 +51,28 @@ class Game(gym.Env):
         self.score = 0.0
         self.total_piece = 0
         self.field = Well()
-        self.enemy = Lovetris()
+        self.enemy = EnemyAI()
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False
         self.reset()
+
+    def reset(self) -> np.ndarray:
+        self.frame_count = 0
+        self.score = 0.0
+        self.total_piece = 0
+        self.field = Well()
+        self.enemy = EnemyAI()
+        self.piece = self.enemy.get_first_piece()
+        self.piece_pos_y = self.piece.y
+        self.gameover = False
+        self.done = False
+        observation = np.array(
+            [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.getcells1D())])
+
+        # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
+        return observation
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
@@ -68,18 +85,19 @@ class Game(gym.Env):
 
         # observation = self.field, self.piece
         observation = np.array(
-            [self.piece.x, self.piece.y, sum(self.field.getcells1D())])
+            [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.getcells1D())])
 
         # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
 
         self.score = self._calc_score()
 
-        if (self.total_piece >= 10):
+        if (self.total_piece >= 11):
             self.score += 1000
             self.done = True
             # print(observation, self.score, self.done)
-        # if (self.piece.age > 50):
-        #     self.gameover = True
+        if (self.piece.age > 1000):
+            self.score -= 1000
+            self.done = True
 
         if (self.gameover):
             self.score -= 1000
@@ -99,7 +117,7 @@ class Game(gym.Env):
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
         r += (self.total_piece * 10)
-        # r -= self.piece.age
+        r -= self.piece.age
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
@@ -117,12 +135,11 @@ class Game(gym.Env):
             self.piece.x += 1
         elif (action == "U"):
             self.piece.rot = (self.piece.rot + 1) % 4
-            pass
 
         if (not self._is_piece_movable()):  # 動かせないなら元に戻す
             self.piece.x = pre_x
             self.piece.rot = pre_rot
-            self.score -= 1
+            self.score -= 2
             if (self.piece.y != pre_y):
                 self.piece.y = pre_y
                 self._lock_piece()
@@ -173,22 +190,6 @@ class Game(gym.Env):
             self.gameover = True
             # return True
 
-    def reset(self) -> np.ndarray:
-        self.frame_count = 0
-        self.score = 0.0
-        self.total_piece = 0
-        self.field = Well()
-        self.enemy = Lovetris()
-        self.piece = self.enemy.get_first_piece()
-        self.piece_pos_y = self.piece.y
-        self.gameover = False
-        self.done = False
-        observation = np.array(
-            [self.piece.x, self.piece.y, sum(self.field.getcells1D())])
-
-        # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
-        return observation
-
     def render(self, mode: Literal["human", "rgb_array", "ansi"] = "human") -> None:
         """描画関数
         mode の引数によって以下の変化がある
@@ -198,17 +199,16 @@ class Game(gym.Env):
         | rgb_array | 返り値の生成処理 | shape=(x, y, 3)のndarray |
         | ansi | 返り値の生成処理 | ansi文字列(str)もしくはStringIO.StringIO |
         """
-        if mode == "human":
+        if mode == "human" or mode == "ansi":
             self.field.renderWells()
-            print(self.piece, self.frame_count)
+            print("frame_count:", self.frame_count)
+            print(self.piece)
             print("total_piece", self.total_piece)
             print("score", self.score)
 
-            pass
 
-
-# if __name__ == "__main__":
-#     game = Game()
+if __name__ == "__main__":
+    game = Game()
 
 #     game.field.cellses[0][3].landed = True
 #     game.field.cellses[0][4].landed = True

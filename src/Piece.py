@@ -171,6 +171,7 @@ class Piece:
             ]
         ]
     }
+    pieces: list = list(unmodified.keys())
     x: int
     y: int
     id: int
@@ -186,7 +187,7 @@ class Piece:
         pass
 
     def __str__(self) -> str:
-        return f"x: {self.x}, y:{self.y}"
+        return f"{self.id}{self.name}, x:{self.x}, y:{self.y}, rot:{self.rot}"
 
     @property
     def name(self) -> Literal['I', 'J', 'L', 'O', 'S', 'T', 'Z']:

@@ -1,13 +1,13 @@
 from random import randint
 from Game import Game
-from gym.spaces import *
+# from gym.spaces import *
 
 game = Game()
 print(game.action_space)
 
 while not game.done:
     print("total", game.total_piece)
-    # obs, reward, _, _, _ = game.step(action_index=int(input()))
+    # obs, reward, _, _ = game.step(action_index=int(input()))
     obs, reward, _, _ = game.step(action_index=randint(0, 3))
     print("reward:", reward)
 
