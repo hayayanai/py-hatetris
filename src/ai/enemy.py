@@ -8,9 +8,8 @@ class EnemyAi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_first_piece() -> Piece:
+    def get_first_piece(self) -> Piece:
         pass
 
-    # @abstractmethod
-    # def get_next_piece() -> Piece:
-    #     pass
+    def get_next_piece(self) -> Piece:
+        return self.get_first_piece()

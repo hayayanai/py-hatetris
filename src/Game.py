@@ -50,13 +50,11 @@ class Game(gym.Env):
         self.score = 0.0
         self.total_piece = 0
         self.field = Well()
-        self.piece = Piece(0)
+        self.enemy = Lovetris()
+        self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False
-
-        self.enemy = RandomAi()
-
         self.reset()
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
@@ -110,6 +108,7 @@ class Game(gym.Env):
     def _handle_input(self, action: str) -> None:
         pre_x = self.piece.x
         pre_y = self.piece.y
+        pre_rot = self.piece.rot
         if (action == "D"):
             self.piece.y -= 1
         elif (action == "L"):
@@ -117,12 +116,12 @@ class Game(gym.Env):
         elif (action == "R"):
             self.piece.x += 1
         elif (action == "U"):
-            self.piece.y -= 1
-            # self.score -= 1
+            self.piece.rot = (self.piece.rot + 1) % 4
             pass
 
         if (not self._is_piece_movable()):  # 動かせないなら元に戻す
             self.piece.x = pre_x
+            self.piece.rot = pre_rot
             self.score -= 1
             if (self.piece.y != pre_y):
                 self.piece.y = pre_y
@@ -135,7 +134,7 @@ class Game(gym.Env):
         move = True
         for y in range(0, 4):
             for x in range(0, 4):
-                if (self.piece.unmodified[self.piece.name][0][y][x] == "#"):
+                if (self.piece.get_char(x, y) == "#"):
                     try:
                         # 頭を抱える。
                         # if (self.field.cellses[y + self.piece.y][x + self.piece.x].landed or x + self.piece.x < 0 or self.piece.y < -1):
@@ -149,7 +148,7 @@ class Game(gym.Env):
     def _lock_piece(self) -> None:
         for y in range(0, 4):
             for x in range(0, 4):
-                if (self.piece.unmodified[self.piece.name][0][y][x] == "#"):
+                if (self.piece.get_char(x, y) == "#"):
                     try:  # TODO: Refactor
                         self.field.cellses[y + self.piece.y][x +
                                                              self.piece.x].landed = True
@@ -159,11 +158,11 @@ class Game(gym.Env):
                         pass
 
         self.total_piece += 1
-        self.piece = self.get_first_piece()
+        self.piece = self.get_next_piece()
         self._check_gameover()
 
-    def get_first_piece(self) -> Piece:
-        return self.enemy.get_first_piece()
+    def get_next_piece(self) -> Piece:
+        return self.enemy.get_next_piece()
 
     def _check_gameover(self) -> None:
         if (self._is_piece_movable()):
@@ -179,7 +178,8 @@ class Game(gym.Env):
         self.score = 0.0
         self.total_piece = 0
         self.field = Well()
-        self.piece = Piece(0)
+        self.enemy = Lovetris()
+        self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False

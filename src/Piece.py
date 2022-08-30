@@ -198,11 +198,14 @@ class Piece:
     def pos(self) -> tuple[int, int]:
         return self.x, self.y
 
+    def get_char(self, x: int, y: int) -> Literal["#", "."]:
+        return self.unmodified[self.name][self.rot][y][x]
+
 # todo: def getNextPiece(field:Well) を書く。
 
 
 piece = Piece(0)
-print(piece.name)
+print(piece.get_char(1, 0))
 # while True:
 #     piece.handle_input(input())
 #     print(piece.y)
