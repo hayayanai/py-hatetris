@@ -205,8 +205,9 @@ class Piece:
 # todo: def getNextPiece(field:Well) を書く。
 
 
-piece = Piece(0)
-print(piece.get_char(1, 0))
+if __name__ == "__main__":
+    piece = Piece(0)
+    print(piece.get_char(1, 0))
 # while True:
 #     piece.handle_input(input())
 #     print(piece.y)

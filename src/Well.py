@@ -59,7 +59,7 @@ class Well:
         return res
 
     def delete_lines(self) -> None:
-        while self._filled_line() != 1:
+        while self._filled_line() != -1:
             self._cut_line(self._filled_line())
 
     def _filled_line(self) -> int:
@@ -68,8 +68,9 @@ class Well:
         for y in range(Well.wellDepth):
             is_filled = True
             for x in range(Well.wellWidth):
-                if self.at(x, y).landed:
+                if not self.at(x, y).landed:
                     is_filled = False
+                    break
             if is_filled:
                 return y
         return -1
