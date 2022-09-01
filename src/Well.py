@@ -36,7 +36,7 @@ class Well:
             raise IndexError("index out of range.")
         return self.cellses[y][x]
 
-    def getcells2D(self) -> list[list[Literal[0, 1]]]:
+    def get_cells_2d(self) -> list[list[Literal[0, 1]]]:
         res = []
         for y in range(0, self.wellDepth):
             cells = []
@@ -48,7 +48,7 @@ class Well:
             res.append(cells)
         return res
 
-    def getcells1D(self) -> list[Literal[0, 1]]:
+    def get_cells_1d(self) -> list[Literal[0, 1]]:
         res = []
         for y in range(0, self.wellDepth):
             for x in range(0, self.wellWidth):
@@ -58,9 +58,18 @@ class Well:
                     res.append(0)
         return res
 
-    def delete_lines(self) -> None:
+    def get_cells_decimal(self) -> int:
+        return int(("".join(map(str, self.get_cells_1d()))), 2)
+
+    def delete_lines(self) -> int:
+        """
+        ラインを消去し、消去したライン数を返す。
+        """
+        count = 0
         while self._filled_line() != -1:
             self._cut_line(self._filled_line())
+            count += 1
+        return count
 
     def _filled_line(self) -> int:
         """埋まっている段を一つ返す。なければ-1。
@@ -85,11 +94,18 @@ class Well:
                 cells.append(Cell(landed=False, live=False))
             self.cellses.append(cells)
 
-    def renderWells(self):
-        for y in range(0, self.wellDepth)[::-1]:
-            for x in range(0, self.wellWidth):
+    def render_wells(self):
+        for y in range(0, Well.wellDepth)[::-1]:
+            for x in range(0, Well.wellWidth):
                 if (self.cellses[y][x].landed):
                     print("#", end="")
                 else:
                     print(".", end="")
             print()
+
+
+if __name__ == "__main__":
+    field = Well()
+    field.cellses[20][1].landed = True
+    field.cellses
+    print(field.get_cells_1d())

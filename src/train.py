@@ -8,7 +8,8 @@ from keras.optimizers import adam_v2
 
 env = Game()
 window_length = 1
-input_shape = (window_length,) + env.observation_space.shape
+print(env.observation_space.shape)
+input_shape = (1,) + env.observation_space.shape
 nb_actions = env.action_space.n
 model = Sequential()
 
@@ -42,7 +43,7 @@ agent.compile(adam_v2.Adam())
 # 学習を開始
 # 100000ステップ実行
 
-history = agent.fit(env, nb_steps=50000, visualize=False, verbose=1)
+history = agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
 agent.save_weights("moving_test.hdf5", overwrite=True)
 

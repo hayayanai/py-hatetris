@@ -9,7 +9,7 @@ from ai.lovetris import Lovetris
 from ai.random import RandomAi
 
 AIs = [Lovetris, RandomAi]
-EnemyAI = RandomAi
+EnemyAI = Lovetris
 
 
 class Game(gym.Env):
@@ -19,14 +19,16 @@ class Game(gym.Env):
     field: Well
     frame_count: int
     total_piece: int
+    total_cleared_line: int
     # rng: int
     # VISIBLE_NEXT: int = 1
-    ACTION_MAP = np.array(["L", "R", "D", "U"])
+    ACTION_MAP = np.array(["L", "R", "H", "U"])
     done: bool
 
     def __init__(self) -> None:
         super().__init__()
-
+        from window import RenderWindow
+        self.window: RenderWindow | None = None
         # 状態の範囲を定義
         ACTION_NUM = len(self.ACTION_MAP)
         self.action_space = spaces.Discrete(ACTION_NUM)
@@ -35,21 +37,35 @@ class Game(gym.Env):
         # HIGH = np.array([np.float32(ACTION_NUM - 1)])
         # self.observation_space = gym.spaces.Box(
         #     low=LOW, high=HIGH)
+        # self.observation_space = spaces.Box(
+        # low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.wellWidth - 1, 23, 3, 23 * (Well.wellWidth - 1)]), dtype=np.uint8)
+        # self.observation_space = spaces.Box(
+        #     low=np.array([0, -2, -2, 0, 0]),
+        #     high=np.array([6, Well.wellWidth - 1, 23, 3,
+        #                   (23 * (Well.wellWidth - 1))]),
+        #     dtype=np.int32
+        #     )
         self.observation_space = spaces.Box(
-            low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.wellWidth - 1, 23, 3, 23 * Well.wellWidth - 1]))
+            low=np.append(np.zeros(Well.wellWidth * Well.wellDepth - 1), 0),
+            high=np.append(np.ones(Well.wellWidth * Well.wellDepth - 1), 1),
+            dtype=np.int32
+        )
         # self.observation_space = spaces.Tuple(
-        #     (spaces.Discrete(2**(10*23)), spaces.Discrete(10*20)))
-        # self.observation_space = spaces.Box
-        # size = 10*20
-        # -int(-np.log(2**(4*8)*4*4*9*5)/np.log(2))
-        # self.observation_space.shape = np.zeros(size, dtype=int)
-
-        # spaces.Discrete((2**(4*8))*4*4*9*5) # 4x8 board [filled or not], 4*9 active-shape locations, 4 rotation positions, 5 shape types
+        #     (
+        #         spaces.Discrete(7),
+        #         spaces.Discrete(10),
+        #         spaces.Discrete(25),
+        #         spaces.Discrete(4),
+        #         spaces.Discrete(2**(62))
+        #     )
+        # )
+        # self.observation_space.shape = np.zeros(7*10*25*4*2**30, dtype=int)
 
         # #(np.zeros(2**(4*8)), np.zeros(4*9), np.zeros(4), np.zeros(5))
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
+        self.total_cleared_line = 0
         self.field = Well()
         self.enemy = EnemyAI()
         self.piece = self.enemy.get_first_piece()
@@ -62,16 +78,17 @@ class Game(gym.Env):
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
+        self.total_cleared_line = 0
         self.field = Well()
         self.enemy = EnemyAI()
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False
-        observation = np.array(
-            [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.getcells1D())])
+        # observation = np.array(
+        #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
+        observation = np.array(self.field.get_cells_1d())
         return observation
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
@@ -84,20 +101,20 @@ class Game(gym.Env):
         self._handle_input(action_player)
 
         # observation = self.field, self.piece
-        observation = np.array(
-            [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.getcells1D())])
+        # observation = np.array(
+        #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        # observation = np.array([np.arctan2(self.piece.x, self.piece.y)])
+        observation = np.array(self.field.get_cells_1d())
 
         self.score = self._calc_score()
 
-        if (self.total_piece >= 11):
+        if (self.total_cleared_line >= 1):
             self.score += 1000
             self.done = True
             # print(observation, self.score, self.done)
-        if (self.piece.age > 1000):
-            self.score -= 1000
-            self.done = True
+        # if (self.piece.age > 30):
+        #     self.score -= 1000
+        #     self.done = True
 
         if (self.gameover):
             self.score -= 1000
@@ -112,8 +129,8 @@ class Game(gym.Env):
 
     def _calc_score(self) -> float:
         r = 0.0
-        r += (22 - self.piece.y)
-        r += (abs(self.piece.x - 3))
+        # r += (22 - self.piece.y)
+        # r += (abs(self.piece.x - 3))
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
         r += (self.total_piece * 10)
@@ -135,6 +152,10 @@ class Game(gym.Env):
             self.piece.x += 1
         elif (action == "U"):
             self.piece.rot = (self.piece.rot + 1) % 4
+        elif (action == "H"):
+            obj_id = id(self.piece)
+            while obj_id == id(self.piece):
+                self._handle_input("D")
 
         if (not self._is_piece_movable()):  # 動かせないなら元に戻す
             self.piece.x = pre_x
@@ -175,7 +196,7 @@ class Game(gym.Env):
                         pass
 
         self.total_piece += 1
-        self.field.delete_lines()
+        self.total_cleared_line += self.field.delete_lines()
         self.piece = self.get_next_piece()
         self._check_gameover()
 
@@ -200,11 +221,26 @@ class Game(gym.Env):
         | rgb_array | 返り値の生成処理 | shape=(x, y, 3)のndarray |
         | ansi | 返り値の生成処理 | ansi文字列(str)もしくはStringIO.StringIO |
         """
-        if mode == "human" or mode == "ansi":
-            self.field.renderWells()
+        if mode == "human":
+            from window import RenderWindow
+            if self.window is None:
+                self.window = RenderWindow(self)
+            self.window.render()
+            self.window.update_idletasks()
+            self.window.update()
+
             print("frame_count:", self.frame_count)
             print(self.piece)
             print("total_piece", self.total_piece)
+            print("total_cleared_line", self.total_cleared_line)
+            print("score", self.score)
+
+        elif mode == "ansi":
+            self.field.render_wells()
+            print("frame_count:", self.frame_count)
+            print(self.piece)
+            print("total_piece", self.total_piece)
+            print("total_cleared_line", self.total_cleared_line)
             print("score", self.score)
 
 
