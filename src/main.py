@@ -1,7 +1,9 @@
 from random import randint
 from time import sleep
-from Game import Game
+
 from gym.spaces import Box
+
+from Game import Game
 
 manual = False
 

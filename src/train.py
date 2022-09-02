@@ -1,10 +1,12 @@
-from Game import Game
-from keras.models import Sequential
 from keras.layers import Dense, Flatten
-from rl.agents.dqn import DQNAgent
-from rl.policy import BoltzmannQPolicy
-from rl.memory import SequentialMemory
+from keras.models import Sequential
 from keras.optimizers import adam_v2
+from matplotlib import pyplot as plt
+from rl.agents.dqn import DQNAgent
+from rl.memory import SequentialMemory
+from rl.policy import BoltzmannQPolicy
+
+from Game import Game
 
 env = Game()
 window_length = 1
@@ -23,8 +25,8 @@ model = Sequential()
 # model = Model(input_, c)
 
 model.add(Flatten(input_shape=input_shape))
-model.add(Dense(units=16, activation="relu"))
-model.add(Dense(units=16, activation="relu"))
+model.add(Dense(units=256, activation="relu"))
+model.add(Dense(units=64, activation="relu"))
 model.add(Dense(units=16, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 # 経験値を蓄積するためのメモリ
@@ -46,6 +48,20 @@ agent.compile(adam_v2.Adam())
 history = agent.fit(env, nb_steps=100000, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
 agent.save_weights("moving_test.hdf5", overwrite=True)
+
+print(history.history)
+print(history.history.keys())
+
+plt.subplot(2, 1, 1)
+plt.plot(history.history["nb_episode_steps"])
+plt.ylabel("step")
+
+plt.subplot(2, 1, 2)
+plt.plot(history.history["episode_reward"])
+plt.xlabel("episode")
+plt.ylabel("reward")
+
+plt.show()
 
 i = input()
 

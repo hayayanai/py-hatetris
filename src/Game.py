@@ -1,12 +1,13 @@
 from typing import Literal
-import gym
-from gym import spaces
-import numpy as np
 
-from Piece import Piece
-from Well import Well
+import gym
+import numpy as np
+from gym import spaces
+
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
+from Piece import Piece
+from Well import Well
 
 AIs = [Lovetris, RandomAi]
 EnemyAI = Lovetris
@@ -109,7 +110,7 @@ class Game(gym.Env):
         self.score = self._calc_score()
 
         if (self.total_cleared_line >= 1):
-            self.score += 1000
+            self.score += 10000
             self.done = True
             # print(observation, self.score, self.done)
         # if (self.piece.age > 30):
@@ -117,7 +118,7 @@ class Game(gym.Env):
         #     self.done = True
 
         if (self.gameover):
-            self.score -= 1000
+            # self.score -= 100
             self.done = True
 
         self.frame_count = next_frame_count
@@ -130,11 +131,11 @@ class Game(gym.Env):
     def _calc_score(self) -> float:
         r = 0.0
         # r += (22 - self.piece.y)
-        # r += (abs(self.piece.x - 3))
+        r += (abs(self.piece.x - 3))
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
         r += (self.total_piece * 10)
-        r -= self.piece.age
+        # r -= self.piece.age
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
