@@ -9,3 +9,10 @@ pip install -r requirements/dev.txt
 
 deactivate
 ```
+
+### For powershell
+
+```ps1
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements/common.txt
+```
