@@ -95,6 +95,15 @@ class Well:
                 cells.append(Cell(landed=False, live=False))
             self.cellses.append(cells)
 
+    def get_column_heights(self) -> list[int]:
+        res = [0] * Well.wellWidth
+        for x in range(Well.wellWidth):
+            for y in range(0, Well.wellDepth)[::-1]:
+                if (self.at(x, y).landed):
+                    res[x] = y
+                    break
+        return res
+
     def render_wells(self):
         for y in range(0, Well.wellDepth)[::-1]:
             for x in range(0, Well.wellWidth):

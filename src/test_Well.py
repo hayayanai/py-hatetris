@@ -22,6 +22,14 @@ class TestWell:
         field.cellses[2][2].landed = True
         return field
 
+    @pytest.fixture
+    def field_heights(self):
+        field = Well()
+        for y in range(4):
+            field.cellses[y][2].landed = True
+        field.cellses[1][3].landed = True
+        return field.get_column_heights()
+
     @pytest.mark.parametrize(
         "y, x, expected",
         [
@@ -46,3 +54,16 @@ class TestWell:
     def test_delete_lines(self, field_filled_two: Well, y, x, expected):
         field_filled_two.delete_lines()
         assert field_filled_two.cellses[y][x].landed is expected
+
+    @pytest.mark.parametrize(
+        "x, expected",
+        [
+            (0, 0),
+            (1, 0),
+            (2, 3),
+            (3, 1),
+            (4, 0)
+        ]
+    )
+    def test_get_column_heights(self, field_heights: list, x, expected):
+        assert field_heights[x] == expected
