@@ -1,6 +1,12 @@
 from typing import Literal
 
-from Cell import Cell
+from dataclasses import dataclass
+
+
+@dataclass
+class Cell:
+    landed: bool
+    live: bool
 
 
 class Well:

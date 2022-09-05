@@ -1,6 +1,6 @@
 import pytest
 
-from Well import Well
+from src.Well import Well
 
 
 class TestWell:

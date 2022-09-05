@@ -2,14 +2,16 @@ from typing import Literal
 
 import gym
 import numpy as np
-from gym import spaces
+from gym.spaces import Box, Dict, Discrete
 
+from actions import ACTIONS
+from ai.burgiel import Burgiel
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from Piece import Piece
 from Well import Well
 
-AIs = [Lovetris, RandomAi]
+AIs = [Lovetris, RandomAi, Burgiel]
 EnemyAI = Lovetris
 
 
@@ -23,7 +25,8 @@ class Game(gym.Env):
     total_cleared_line: int
     # rng: int
     # VISIBLE_NEXT: int = 1
-    ACTION_MAP = np.array(["L", "R", "H", "U"])
+    # ACTION_MAP = np.array(["L", "R", "D", "U", "H"])
+    ACTION_MAP = np.array(ACTIONS)
     done: bool
 
     def __init__(self) -> None:
@@ -32,12 +35,8 @@ class Game(gym.Env):
         self.window: RenderWindow | None = None
         # 状態の範囲を定義
         ACTION_NUM = len(self.ACTION_MAP)
-        self.action_space = spaces.Discrete(ACTION_NUM)
+        self.action_space = Discrete(ACTION_NUM)
 
-        # LOW = np.array([np.float32(0)])
-        # HIGH = np.array([np.float32(ACTION_NUM - 1)])
-        # self.observation_space = gym.spaces.Box(
-        #     low=LOW, high=HIGH)
         # self.observation_space = spaces.Box(
         # low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.wellWidth - 1, 23, 3, 23 * (Well.wellWidth - 1)]), dtype=np.uint8)
         # self.observation_space = spaces.Box(
@@ -46,11 +45,28 @@ class Game(gym.Env):
         #                   (23 * (Well.wellWidth - 1))]),
         #     dtype=np.int32
         #     )
-        self.observation_space = spaces.Box(
-            low=np.append(np.zeros(Well.wellWidth * Well.wellDepth - 1), 0),
-            high=np.append(np.ones(Well.wellWidth * Well.wellDepth - 1), 1),
-            dtype=np.int32
-        )
+        # self.observation_space = Box(
+        #     low=np.append(np.zeros(Well.wellWidth *
+        #                   Well.wellDepth), np.zeros(Well.wellWidth)),
+        #     high=np.append(
+        #         np.ones(Well.wellWidth * Well.wellDepth), np.full(Well.wellWidth, Well.wellDepth)),
+        #     dtype=np.int32
+        # )
+        self.observation_space = Dict({
+            "Column_Height": Box(
+                low=np.zeros(Well.wellWidth),
+                high=np.full(Well.wellWidth, Well.wellDepth),
+                dtype=np.int8
+            ),
+            "Field": Box(
+                low=np.append(
+                    np.zeros(Well.wellWidth * Well.wellDepth - 1), 0),
+                high=np.append(
+                    np.ones(Well.wellWidth * Well.wellDepth - 1), 1),
+                dtype=np.int8
+            )
+        })
+
         # self.observation_space = spaces.Tuple(
         #     (
         #         spaces.Discrete(7),
@@ -89,7 +105,11 @@ class Game(gym.Env):
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        observation = np.array(self.field.get_cells_1d())
+        # observation = np.append(np.array(self.field.get_cells_1d()), np.array(
+        #     self.field.get_column_heights()))
+
+        observation = np.append(np.array(
+            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         return observation
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
@@ -105,20 +125,21 @@ class Game(gym.Env):
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        observation = np.array(self.field.get_cells_1d())
+        observation = np.append(np.array(
+            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
 
         self.score = self._calc_score()
 
-        if (self.total_cleared_line >= 1):
-            self.score += 10000
-            self.done = True
-            # print(observation, self.score, self.done)
+        # if (self.total_cleared_line >= 3):
+        #     self.score += 10000
+        #     self.done = True
+        # print(observation, self.score, self.done)
         # if (self.piece.age > 30):
         #     self.score -= 1000
         #     self.done = True
 
         if (self.gameover):
-            # self.score -= 100
+            self.score -= 10000
             self.done = True
 
         self.frame_count = next_frame_count
@@ -126,15 +147,24 @@ class Game(gym.Env):
 
         reward = self.score - og_score
 
-        return observation, reward, self.done, {}
+        info = {
+            "frame_count": self.frame_count,
+            "total_piece": self.total_piece,
+            "total_cleared_line": self.total_cleared_line
+        }
+
+        return observation, reward, self.done, info
 
     def _calc_score(self) -> float:
         r = 0.0
         # r += (22 - self.piece.y)
-        r += (abs(self.piece.x - 3))
+        # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        r += (self.total_piece * 10)
+        r += (self.total_piece)
+        # r -= (max(self.field.get_column_heights())) * 10
+        # r += (self.piece.rot % 2) * 2
+        r += self.total_cleared_line * 1000
         # r -= self.piece.age
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
@@ -145,18 +175,22 @@ class Game(gym.Env):
         pre_x = self.piece.x
         pre_y = self.piece.y
         pre_rot = self.piece.rot
-        if (action == "D"):
-            self.piece.y -= 1
-        elif (action == "L"):
-            self.piece.x -= 1
-        elif (action == "R"):
-            self.piece.x += 1
-        elif (action == "U"):
-            self.piece.rot = (self.piece.rot + 1) % 4
-        elif (action == "H"):
-            obj_id = id(self.piece)
-            while obj_id == id(self.piece):
-                self._handle_input("D")
+        if len(action) == 1:
+            if (action == "D"):
+                self.piece.y -= 1
+            elif (action == "L"):
+                self.piece.x -= 1
+            elif (action == "R"):
+                self.piece.x += 1
+            elif (action == "U"):
+                self.piece.rot = (self.piece.rot + 1) % 4
+            elif (action == "H"):
+                obj_id = id(self.piece)
+                while obj_id == id(self.piece):
+                    self._handle_input("D")
+        else:
+            self._handle_input(action[0])
+            self._handle_input(action[1:])
 
         if (not self._is_piece_movable()):  # 動かせないなら元に戻す
             self.piece.x = pre_x
@@ -230,29 +264,15 @@ class Game(gym.Env):
             self.window.update_idletasks()
             self.window.update()
 
-            print("frame_count:", self.frame_count)
             print(self.piece)
-            print("total_piece", self.total_piece)
-            print("total_cleared_line", self.total_cleared_line)
             print("score", self.score)
 
         elif mode == "ansi":
             self.field.render_wells()
-            print("frame_count:", self.frame_count)
+
             print(self.piece)
-            print("total_piece", self.total_piece)
-            print("total_cleared_line", self.total_cleared_line)
             print("score", self.score)
 
 
 if __name__ == "__main__":
     game = Game()
-
-#     game.field.cellses[0][3].landed = True
-#     game.field.cellses[0][4].landed = True
-#     game.field.cellses[0][5].landed = True
-
-#     while True:
-#         game.field.renderWells()
-#         obs, reward, _, _ = game.step(action_index=int(input()))
-#         print(game.piece)

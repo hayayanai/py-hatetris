@@ -1,3 +1,4 @@
+from pprint import pprint
 from random import randint
 from time import sleep
 
@@ -5,7 +6,7 @@ from gym.spaces import Box
 
 from Game import Game
 
-manual = False
+manual = True
 
 game = Game()
 print(game.action_space)
@@ -18,12 +19,14 @@ if isinstance(space, Box):
 
 while not game.done:
     if manual:
-        obs, reward, _, _ = game.step(action_index=int(input()))
+        obs, reward, _, info = game.step(action_index=int(input()))
         print("reward:", reward)
+        pprint(info)
         game.render()
     else:
-        obs, reward, _, _ = game.step(action_index=randint(0, 3))
+        obs, reward, _, info = game.step(action_index=randint(0, 42))
         print("reward:", reward)
+        pprint(info)
         game.render()
         sleep(0.5)
     # print("obs:", obs)

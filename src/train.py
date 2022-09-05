@@ -3,23 +3,27 @@ import json
 import time
 
 import requests
+import gym.spaces
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
 from keras.optimizers import adam_v2
 from matplotlib import pyplot as plt
 from rl.agents.dqn import DQNAgent
-from rl.agents.sarsa import SARSAAgent
+# from rl.agents.sarsa import SARSAAgent
 from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 
 from Game import Game
 
-NB_STEPS = 900000
+NB_STEPS = 100000
 
 env = Game()
 window_length = 1
-print(env.observation_space.shape)
-input_shape = (1,) + env.observation_space.shape
+print(gym.spaces.flatten_space((env.observation_space)).shape)
+input_shape = (1,) + gym.spaces.flatten_space((env.observation_space)).shape
+print(input_shape)
+
+# input_shape = (1,) + env.observation_space.shape
 nb_actions = env.action_space.n
 model = Sequential()
 
@@ -63,7 +67,7 @@ agent.save_weights("moving_test", overwrite=True)
 time_spent = time.time() - time_start
 print(datetime.timedelta(seconds=time_spent))
 
-print(history.history)
+# print(history.history)
 print(history.history.keys())
 
 plt.subplot(2, 1, 1)
@@ -77,7 +81,7 @@ plt.ylabel("reward")
 
 plt.savefig("graph.png", format="png")
 
-WEBHOOK_URL = ""
+WEBHOOK_URL = "https://discord.com/api/webhooks/1015490794603425803/0YIP0jDBiObdMIzvT6NEeYuxekeIAWCj1_ljths_I-l9Ttr2-XVXRNIj5zwAZFTglzi3"
 
 payload = {
     "username": "学習終了",

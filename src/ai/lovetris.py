@@ -13,4 +13,4 @@ class Lovetris(EnemyAi):
         # Return
         Always `I` Piece
         """
-        return Piece(0)
+        return Piece(3)

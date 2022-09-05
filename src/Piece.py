@@ -184,7 +184,6 @@ class Piece:
         self.id = piece_id
         self.rot = 0
         self.age = 0
-        pass
 
     def __str__(self) -> str:
         return f"{self.id}{self.name}, x:{self.x}, y:{self.y}, rot:{self.rot}"
@@ -202,14 +201,6 @@ class Piece:
     def get_char(self, x: int, y: int) -> Literal["#", "."]:
         return self.unmodified[self.name][self.rot][y][x]
 
-# todo: def getNextPiece(field:Well) を書く。
-
 
 if __name__ == "__main__":
-    piece = Piece(0)
-    print(piece.get_char(1, 0))
-# while True:
-#     piece.handle_input(input())
-#     print(piece.y)
-
-# print(Piece.unmodified["I"][0][1][1])
+    pass
