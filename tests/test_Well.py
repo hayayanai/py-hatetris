@@ -1,5 +1,4 @@
 import pytest
-
 from src.Well import Well
 
 
@@ -24,11 +23,17 @@ class TestWell:
 
     @pytest.fixture
     def field_heights(self):
+        """
+        ..#.
+        ..#.
+        ..##
+        ..#.
+        """
         field = Well()
         for y in range(4):
             field.cellses[y][2].landed = True
         field.cellses[1][3].landed = True
-        return field.get_column_heights()
+        return field
 
     @pytest.mark.parametrize(
         "y, x, expected",
@@ -65,5 +70,9 @@ class TestWell:
             (4, 0)
         ]
     )
-    def test_get_column_heights(self, field_heights: list, x, expected):
-        assert field_heights[x] == expected
+    def test_get_column_heights(self, field_heights: Well, x, expected):
+        lis = field_heights.get_column_heights()
+        assert lis[x] == expected
+
+    def test_get_holes(self, field_heights: Well):
+        assert field_heights.get_holes() == 1

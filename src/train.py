@@ -2,8 +2,8 @@ import datetime
 import json
 import time
 
-import requests
 import gym.spaces
+import requests
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
 from keras.optimizers import adam_v2
@@ -15,7 +15,7 @@ from rl.policy import BoltzmannQPolicy
 
 from Game import Game
 
-NB_STEPS = 100000
+NB_STEPS = 200000
 
 env = Game()
 window_length = 1
@@ -51,7 +51,7 @@ policy = BoltzmannQPolicy()
 # DQN エージェントの作成
 # agent = SARSAAgent(model=model, nb_actions=nb_actions, nb_steps_warmup=10)
 agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True)
+                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, enable_dueling_network=True)
 # DQNAgentのコンパイル
 # 最適化はAdam,評価関数はMAEを使用
 agent.compile(adam_v2.Adam())
@@ -60,9 +60,10 @@ agent.compile(adam_v2.Adam())
 # 学習を開始
 # 100000ステップ実行
 time_start = time.time()
+# tb_callback = tf.keras.callbacks.TensorBoard('./logs', update_freq=1)
 history = agent.fit(env, nb_steps=NB_STEPS, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_test", overwrite=True)
+agent.save_weights("moving_random", overwrite=True)
 
 time_spent = time.time() - time_start
 print(datetime.timedelta(seconds=time_spent))
@@ -95,4 +96,4 @@ print(json.dumps(json.loads(res.content), indent=4, ensure_ascii=False))
 
 plt.show()
 
-agent.test(env, nb_episodes=1, visualize=True)
+agent.test(env, nb_episodes=3, visualize=True)

@@ -110,6 +110,20 @@ class Well:
                     break
         return res
 
+    def get_holes(self) -> int:
+        """
+        空白のうち、上方向に1つでもブロックが存在する穴の個数(int)
+        """
+        count = 0
+        for y in range(0, self.wellDepth)[::-1]:
+            for x in range(0, self.wellWidth):
+                if (not self.at(x, y).landed):
+                    for yy in range(y + 1, self.wellDepth):
+                        if (self.at(x, yy).landed):
+                            count += 1
+                            break
+        return count
+
     def render_wells(self):
         for y in range(0, Well.wellDepth)[::-1]:
             for x in range(0, Well.wellWidth):

@@ -20,6 +20,7 @@
 # */
 
 from Piece import Piece
+
 from ai.enemy import EnemyAi
 
 

@@ -1,3 +1,4 @@
+import time
 from typing import Literal
 
 import gym
@@ -8,11 +9,12 @@ from actions import ACTIONS
 from ai.burgiel import Burgiel
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
+from ai.seven import SevenAi
 from Piece import Piece
 from Well import Well
 
-AIs = [Lovetris, RandomAi, Burgiel]
-EnemyAI = Lovetris
+AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
+EnemyAI = SevenAi
 
 
 class Game(gym.Env):
@@ -64,7 +66,8 @@ class Game(gym.Env):
                 high=np.append(
                     np.ones(Well.wellWidth * Well.wellDepth - 1), 1),
                 dtype=np.int8
-            )
+            ),
+            "PieceID": Box(low=0, high=6, dtype=np.uint8)
         })
 
         # self.observation_space = spaces.Tuple(
@@ -110,6 +113,7 @@ class Game(gym.Env):
 
         observation = np.append(np.array(
             self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.append(observation, self.piece.id)
         return observation
 
     def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
@@ -127,6 +131,7 @@ class Game(gym.Env):
 
         observation = np.append(np.array(
             self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.append(observation, self.piece.id)
 
         self.score = self._calc_score()
 
@@ -161,11 +166,12 @@ class Game(gym.Env):
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        r += (self.total_piece)
-        # r -= (max(self.field.get_column_heights())) * 10
+        # r += (self.total_piece)
+        r -= (max(self.field.get_column_heights())) * 100
+        # r -= (sum(self.field.get_column_heights())) * 20
         # r += (self.piece.rot % 2) * 2
-        r += self.total_cleared_line * 1000
-        # r -= self.piece.age
+        r += self.total_cleared_line * 10000
+        r += self.frame_count * 100
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
@@ -195,11 +201,11 @@ class Game(gym.Env):
         if (not self._is_piece_movable()):  # 動かせないなら元に戻す
             self.piece.x = pre_x
             self.piece.rot = pre_rot
-            self.score -= 2
+            # self.score -= 2
             if (self.piece.y != pre_y):
                 self.piece.y = pre_y
                 self._lock_piece()
-                self.score += 10
+                # self.score += 10
 
     def _is_piece_movable(self) -> bool:
         # wellDepth = 20
@@ -263,7 +269,7 @@ class Game(gym.Env):
             self.window.render()
             self.window.update_idletasks()
             self.window.update()
-
+            time.sleep(0.1)
             print(self.piece)
             print("score", self.score)
 
