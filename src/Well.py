@@ -1,5 +1,3 @@
-from typing import Literal
-
 from dataclasses import dataclass
 
 
@@ -11,15 +9,15 @@ class Cell:
 
 class Well:
     cellses: list[list[Cell]]
-    wellDepth: int = 23
-    wellWidth: int = 10
+    DEPTH: int = 23
+    WIDTH: int = 10
 
     def __init__(self) -> None:
         self.cellses: list[list[Cell]] = []
 
-        for y in range(0, self.wellDepth):
+        for y in range(0, Well.DEPTH):
             cells = []
-            for x in range(0, self.wellWidth):
+            for x in range(0, Well.WIDTH):
                 # landed = (well is not None) and (well[y] & (1 << x)) != 0
 
                 # live: bool
@@ -43,11 +41,14 @@ class Well:
             raise IndexError("index out of range.")
         return self.cellses[y][x]
 
-    def get_cells_2d(self) -> list[list[Literal[0, 1]]]:
+    def get_cells_2d(self) -> list[list[int]]:
+        """
+        Return 2d list of empty: 0 and filled: 1
+        """
         res = []
-        for y in range(0, self.wellDepth):
+        for y in range(0, Well.DEPTH):
             cells = []
-            for x in range(0, self.wellWidth):
+            for x in range(0, Well.WIDTH):
                 if (self.cellses[y][x].landed):
                     cells.append(1)
                 else:
@@ -55,10 +56,10 @@ class Well:
             res.append(cells)
         return res
 
-    def get_cells_1d(self) -> list[Literal[0, 1]]:
+    def get_cells_1d(self) -> list[int]:
         res = []
-        for y in range(0, self.wellDepth):
-            for x in range(0, self.wellWidth):
+        for y in range(0, Well.DEPTH):
+            for x in range(0, Well.WIDTH):
                 if (self.cellses[y][x].landed):
                     res.append(1)
                 else:
@@ -81,9 +82,9 @@ class Well:
     def _filled_line(self) -> int:
         """埋まっている段を一つ返す。なければ-1。
         """
-        for y in range(Well.wellDepth):
+        for y in range(Well.DEPTH):
             is_filled = True
-            for x in range(Well.wellWidth):
+            for x in range(Well.WIDTH):
                 if not self.at(x, y).landed:
                     is_filled = False
                     break
@@ -97,16 +98,16 @@ class Well:
         else:
             del self.cellses[y]
             cells = []
-            for _ in range(Well.wellWidth):
+            for _ in range(Well.WIDTH):
                 cells.append(Cell(landed=False, live=False))
             self.cellses.append(cells)
 
     def get_column_heights(self) -> list[int]:
-        res = [0] * Well.wellWidth
-        for x in range(Well.wellWidth):
-            for y in range(0, Well.wellDepth)[::-1]:
+        res = [0] * Well.WIDTH
+        for x in range(Well.WIDTH):
+            for y in range(0, Well.DEPTH)[::-1]:
                 if (self.at(x, y).landed):
-                    res[x] = y
+                    res[x] = y + 1
                     break
         return res
 
@@ -115,18 +116,18 @@ class Well:
         空白のうち、上方向に1つでもブロックが存在する穴の個数(int)
         """
         count = 0
-        for y in range(0, self.wellDepth)[::-1]:
-            for x in range(0, self.wellWidth):
+        for y in range(0, Well.DEPTH)[::-1]:
+            for x in range(0, Well.WIDTH):
                 if (not self.at(x, y).landed):
-                    for yy in range(y + 1, self.wellDepth):
+                    for yy in range(y + 1, Well.DEPTH):
                         if (self.at(x, yy).landed):
                             count += 1
                             break
         return count
 
     def render_wells(self):
-        for y in range(0, Well.wellDepth)[::-1]:
-            for x in range(0, Well.wellWidth):
+        for y in range(0, Well.DEPTH)[::-1]:
+            for x in range(0, Well.WIDTH):
                 if (self.cellses[y][x].landed):
                     print("#", end="")
                 else:

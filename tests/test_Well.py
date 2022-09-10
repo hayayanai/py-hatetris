@@ -7,7 +7,7 @@ class TestWell:
     @pytest.fixture
     def field_filled_one(self) -> Well:
         field = Well()
-        for x in range(Well.wellWidth):
+        for x in range(Well.WIDTH):
             field.cellses[0][x].landed = True
         field.cellses[1][2].landed = True
         yield field
@@ -15,7 +15,7 @@ class TestWell:
     @pytest.fixture
     def field_filled_two(self):
         field = Well()
-        for x in range(Well.wellWidth):
+        for x in range(Well.WIDTH):
             field.cellses[0][x].landed = True
             field.cellses[1][x].landed = True
         field.cellses[2][2].landed = True
@@ -65,8 +65,8 @@ class TestWell:
         [
             (0, 0),
             (1, 0),
-            (2, 3),
-            (3, 1),
+            (2, 4),
+            (3, 2),
             (4, 0)
         ]
     )

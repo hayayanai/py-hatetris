@@ -1,7 +1,7 @@
 import time
 from typing import Literal
 
-import gym
+from gym import Env
 import numpy as np
 from gym.spaces import Box, Dict, Discrete
 
@@ -17,7 +17,7 @@ AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
 EnemyAI = SevenAi
 
 
-class Game(gym.Env):
+class Game(Env):
     piece: Piece
     piece_pos_y: int
     # hold: number;
@@ -40,32 +40,32 @@ class Game(gym.Env):
         self.action_space = Discrete(ACTION_NUM)
 
         # self.observation_space = spaces.Box(
-        # low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.wellWidth - 1, 23, 3, 23 * (Well.wellWidth - 1)]), dtype=np.uint8)
+        # low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.WIDTH - 1, 23, 3, 23 * (Well.WIDTH - 1)]), dtype=np.uint8)
         # self.observation_space = spaces.Box(
         #     low=np.array([0, -2, -2, 0, 0]),
-        #     high=np.array([6, Well.wellWidth - 1, 23, 3,
-        #                   (23 * (Well.wellWidth - 1))]),
+        #     high=np.array([6, Well.WIDTH - 1, 23, 3,
+        #                   (23 * (Well.WIDTH - 1))]),
         #     dtype=np.int32
         #     )
         # self.observation_space = Box(
-        #     low=np.append(np.zeros(Well.wellWidth *
-        #                   Well.wellDepth), np.zeros(Well.wellWidth)),
+        #     low=np.append(np.zeros(Well.WIDTH *
+        #                   Well.DEPTH), np.zeros(Well.WIDTH)),
         #     high=np.append(
-        #         np.ones(Well.wellWidth * Well.wellDepth), np.full(Well.wellWidth, Well.wellDepth)),
+        #         np.ones(Well.WIDTH * Well.DEPTH), np.full(Well.WIDTH, Well.DEPTH)),
         #     dtype=np.int32
         # )
         self.observation_space = Dict({
             "Column_Height": Box(
-                low=np.zeros(Well.wellWidth),
-                high=np.full(Well.wellWidth, Well.wellDepth),
-                dtype=np.int8
+                low=np.zeros(Well.WIDTH),
+                high=np.full(Well.WIDTH, Well.DEPTH),
+                dtype=np.uint8
             ),
             "Field": Box(
                 low=np.append(
-                    np.zeros(Well.wellWidth * Well.wellDepth - 1), 0),
+                    np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
                 high=np.append(
-                    np.ones(Well.wellWidth * Well.wellDepth - 1), 1),
-                dtype=np.int8
+                    np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
+                dtype=np.uint8
             ),
             "PieceID": Box(low=0, high=6, dtype=np.uint8)
         })
@@ -116,7 +116,7 @@ class Game(gym.Env):
         observation = np.append(observation, self.piece.id)
         return observation
 
-    def step(self, action_index: int) -> tuple[dict, float, bool, dict]:
+    def step(self, action_index: int) -> tuple[np.ndarray, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
         og_score = self.score
         self.score = 0.0
@@ -139,12 +139,9 @@ class Game(gym.Env):
         #     self.score += 10000
         #     self.done = True
         # print(observation, self.score, self.done)
-        # if (self.piece.age > 30):
-        #     self.score -= 1000
-        #     self.done = True
 
         if (self.gameover):
-            self.score -= 10000
+            self.score -= 100
             self.done = True
 
         self.frame_count = next_frame_count
@@ -167,11 +164,12 @@ class Game(gym.Env):
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
         # r += (self.total_piece)
-        r -= (max(self.field.get_column_heights())) * 100
-        # r -= (sum(self.field.get_column_heights())) * 20
+        r -= (max(self.field.get_column_heights()))
+        # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        r += self.total_cleared_line * 10000
-        r += self.frame_count * 100
+        r -= self.field.get_holes() * 4
+        r += self.total_cleared_line * 100
+        r += self.frame_count * 0.1
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
@@ -208,8 +206,6 @@ class Game(gym.Env):
                 # self.score += 10
 
     def _is_piece_movable(self) -> bool:
-        # wellDepth = 20
-        # wellWidth = 10
         move = True
         for y in range(0, 4):
             for x in range(0, 4):

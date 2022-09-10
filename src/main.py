@@ -22,6 +22,9 @@ while not game.done:
         obs, reward, _, info = game.step(action_index=int(input()))
         print("reward:", reward)
         pprint(info)
+        pprint(game.field.get_column_heights())
+        print(game.field.get_holes())
+
         game.render()
     else:
         obs, reward, _, info = game.step(action_index=randint(0, 42))

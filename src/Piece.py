@@ -2,7 +2,7 @@ from typing import Literal
 
 
 class Piece:
-    unmodified: dict[str, list[list[str, str, str, str]]] = {
+    UNMODIFIED: dict[str, list] = {
         "I": [
             [
                 '....',
@@ -171,11 +171,11 @@ class Piece:
             ]
         ]
     }
-    pieces: list = list(unmodified.keys())
+    PIECES: list = list(UNMODIFIED.keys())
     x: int
     y: int
     id: int
-    rot: Literal[0, 1, 2, 3]
+    rot: int
     age: int
 
     def __init__(self, piece_id: int = 0) -> None:
@@ -189,17 +189,18 @@ class Piece:
         return f"{self.id}{self.name}, x:{self.x}, y:{self.y}, rot:{self.rot}"
 
     @property
-    def name(self) -> Literal['I', 'J', 'L', 'O', 'S', 'T', 'Z']:
+    def name(self) -> str:
         """id: int -> key: str
+        ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
         """
-        return list(Piece.unmodified.keys())[self.id]
+        return list(Piece.UNMODIFIED.keys())[self.id]
 
     @property
     def pos(self) -> tuple[int, int]:
         return self.x, self.y
 
     def get_char(self, x: int, y: int) -> Literal["#", "."]:
-        return self.unmodified[self.name][self.rot][y][x]
+        return self.UNMODIFIED[self.name][self.rot][y][x]
 
 
 if __name__ == "__main__":

@@ -2,8 +2,8 @@ import datetime
 import json
 import time
 
-import gym.spaces
 import requests
+from gym.spaces import flatten_space
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
 from keras.optimizers import adam_v2
@@ -15,12 +15,12 @@ from rl.policy import BoltzmannQPolicy
 
 from Game import Game
 
-NB_STEPS = 200000
+NB_STEPS = 1000000
 
 env = Game()
 window_length = 1
-print(gym.spaces.flatten_space((env.observation_space)).shape)
-input_shape = (1,) + gym.spaces.flatten_space((env.observation_space)).shape
+print(flatten_space((env.observation_space)).shape)
+input_shape = (1,) + flatten_space((env.observation_space)).shape
 print(input_shape)
 
 # input_shape = (1,) + env.observation_space.shape
@@ -63,7 +63,7 @@ time_start = time.time()
 # tb_callback = tf.keras.callbacks.TensorBoard('./logs', update_freq=1)
 history = agent.fit(env, nb_steps=NB_STEPS, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_random", overwrite=True)
+agent.save_weights("moving_random_3", overwrite=True)
 
 time_spent = time.time() - time_start
 print(datetime.timedelta(seconds=time_spent))
@@ -82,7 +82,7 @@ plt.ylabel("reward")
 
 plt.savefig("graph.png", format="png")
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1015490794603425803/0YIP0jDBiObdMIzvT6NEeYuxekeIAWCj1_ljths_I-l9Ttr2-XVXRNIj5zwAZFTglzi3"
+WEBHOOK_URL = ""
 
 payload = {
     "username": "学習終了",
