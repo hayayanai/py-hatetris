@@ -1,7 +1,7 @@
 from tkinter import Canvas, Tk
 
-from Game import Game
-from Well import Well
+from game import Game
+from well import Well
 
 SIZE = 20
 

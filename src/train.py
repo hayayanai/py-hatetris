@@ -13,7 +13,7 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 
-from Game import Game
+from game import Game
 
 NB_STEPS = 1000000
 

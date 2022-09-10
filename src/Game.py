@@ -10,8 +10,8 @@ from ai.burgiel import Burgiel
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
-from Piece import Piece
-from Well import Well
+from piece import Piece
+from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
 EnemyAI = SevenAi

@@ -1,6 +1,6 @@
 from random import randint
 
-from Piece import Piece
+from piece import Piece
 
 from ai.enemy import EnemyAi
 

@@ -4,7 +4,7 @@ from time import sleep
 
 from gym.spaces import Box
 
-from Game import Game
+from game import Game
 
 manual = True
 

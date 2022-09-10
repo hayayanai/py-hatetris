@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from Piece import Piece
+from piece import Piece
 
 
 class EnemyAi(metaclass=ABCMeta):

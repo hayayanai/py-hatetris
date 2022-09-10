@@ -1,5 +1,5 @@
 import pytest
-from src.Well import Well
+from src.well import Well
 
 
 class TestWell:

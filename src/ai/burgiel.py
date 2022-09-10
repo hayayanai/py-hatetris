@@ -19,7 +19,7 @@
 # which piece to send next.
 # */
 
-from Piece import Piece
+from piece import Piece
 
 from ai.enemy import EnemyAi
 

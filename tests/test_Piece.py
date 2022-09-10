@@ -1,4 +1,4 @@
-from src.Piece import Piece
+from src.piece import Piece
 
 
 class Test_Piece:
