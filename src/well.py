@@ -103,6 +103,9 @@ class Well:
             self.cellses.append(cells)
 
     def get_column_heights(self) -> list[int]:
+        """
+        それぞれの列の一番上にあるブロックの高さ(int)
+        """
         res = [0] * Well.WIDTH
         for x in range(Well.WIDTH):
             for y in range(0, Well.DEPTH)[::-1]:
@@ -124,6 +127,17 @@ class Well:
                             count += 1
                             break
         return count
+
+    def get_bumpiness(self) -> int:
+        """
+        隣との高さの差の絶対値の合計。
+        すなわち、表面が凸凹なほどプラス
+        """
+        v = 0
+        lis = self.get_column_heights()
+        for x in range(Well.WIDTH - 1):
+            v += abs(lis[x] - lis[x + 1])
+        return v
 
     def render_wells(self):
         for y in range(0, Well.DEPTH)[::-1]:

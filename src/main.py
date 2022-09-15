@@ -5,7 +5,7 @@ from time import sleep
 from gym.spaces import Box
 
 from game import Game
-
+from actions import ACTIONS
 manual = True
 
 game = Game()
@@ -24,13 +24,14 @@ while not game.done:
         pprint(info)
         pprint(game.field.get_column_heights())
         print(game.field.get_holes())
+        print(game.field.get_bumpiness())
 
         game.render()
     else:
-        obs, reward, _, info = game.step(action_index=randint(0, 42))
+        obs, reward, _, info = game.step(action_index=randint(0, len(ACTIONS) - 1))
         print("reward:", reward)
         pprint(info)
         game.render()
-        sleep(0.5)
+        sleep(0.02)
     # print("obs:", obs)
     # print("age", game.piece.age)

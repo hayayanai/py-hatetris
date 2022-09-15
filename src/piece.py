@@ -11,6 +11,7 @@ class Mino(Enum):
     T = 5
     Z = 6
 
+
 class Piece():
     UNMODIFIED: dict[str, list] = {
         "I": [
