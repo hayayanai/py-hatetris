@@ -139,6 +139,17 @@ class Well:
             v += abs(lis[x] - lis[x + 1])
         return v
 
+    def get_deviation(self) -> int | float:
+        """
+        各列の高さ - 高さの平均 の絶対値の合計
+        """
+        v = 0
+        lis = self.get_column_heights()
+        mean = sum(lis) / len(lis)
+        for x in lis:
+            v += abs(x - mean)
+        return v
+
     def render_wells(self):
         for y in range(0, Well.DEPTH)[::-1]:
             for x in range(0, Well.WIDTH):

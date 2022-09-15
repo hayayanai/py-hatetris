@@ -1,3 +1,5 @@
+from os import environ
+
 import gym.spaces
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
@@ -8,8 +10,17 @@ from rl.policy import BoltzmannQPolicy
 
 from game import Game
 
-env = Game()
 NB_STEPS = 5000000
+
+DEVICE = "cpu"  # ["cpu", "gpu_limited", "gpu_unlimited"]
+
+
+if (DEVICE == "cpu"):
+    environ["CUDA_VISIBLE_DEVICES"] = "-1"
+elif (DEVICE == "gpu_limited"):
+    environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+elif (DEVICE == "gpu_unlimited"):
+    pass
 
 env = Game()
 window_length = 1

@@ -1,4 +1,4 @@
-from piece import Piece
+from piece import Mino, Piece
 
 from ai.enemy import EnemyAi
 
@@ -12,4 +12,4 @@ class Lovetris(EnemyAi):
         # Return
         Always `I` Piece
         """
-        return Piece(3)
+        return Piece(Mino.O)

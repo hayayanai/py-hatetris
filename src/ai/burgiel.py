@@ -19,7 +19,7 @@
 # which piece to send next.
 # */
 
-from piece import Piece
+from piece import Mino, Piece
 
 from ai.enemy import EnemyAi
 
@@ -27,10 +27,11 @@ from ai.enemy import EnemyAi
 class Burgiel(EnemyAi):
     def __init__(self) -> None:
         super().__init__()
-        self.current_piece: int = 4
+        self.current_piece: Mino = Mino.S
 
     def get_first_piece(self) -> Piece:
-        return Piece(4)
+        return Piece(Mino.S.value)
 
     def get_next_piece(self) -> Piece:
-        return Piece(6 if self.current_piece == 4 else 6)
+        self.current_piece = Mino.Z if self.current_piece == Mino.S else Mino.S
+        return Piece(self.current_piece.value)
