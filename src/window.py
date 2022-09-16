@@ -3,9 +3,9 @@ from tkinter import Canvas, Tk
 from game import Game
 from well import Well
 
-SIZE = 20
+SIZE = 25
 
-WIDTH = Well.WIDTH * SIZE
+WIDTH = Well.WIDTH * SIZE + 400
 HEIGHT = Well.DEPTH * SIZE
 
 
@@ -52,4 +52,13 @@ class RenderWindow(Tk):
                         (x + self.game.piece.x) * SIZE, y * SIZE, (x + self.game.piece.x + 1) * SIZE, (y + 1) * SIZE, fill="red")
 
     def _render_info(self):
-        pass
+        txt = f"""
+        column_heights:
+            {self.game.field.get_column_heights()}
+        holes: {self.game.field.get_holes()}
+        bumpiness: {self.game.field.get_bumpiness()}
+        deviation: {self.game.field.get_deviation()}
+        total_cleared_line: {self.game.total_cleared_line}
+        score: {self.game.score}
+        """
+        self.canvas.create_text(Well.WIDTH * SIZE + 150, 100, font=("", 18), text=txt)

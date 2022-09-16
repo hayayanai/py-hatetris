@@ -1,8 +1,8 @@
 import time
 from typing import Literal
 
-from gym import Env
 import numpy as np
+from gym import Env
 from gym.spaces import Box, Dict, Discrete
 
 from actions import ACTIONS
@@ -14,7 +14,7 @@ from piece import Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
-EnemyAI = SevenAi
+EnemyAI = RandomAi
 
 
 class Game(Env):
@@ -39,27 +39,12 @@ class Game(Env):
         ACTION_NUM = len(self.ACTION_MAP)
         self.action_space = Discrete(ACTION_NUM)
 
-        # self.observation_space = spaces.Box(
-        # low=np.array([0, -2, -2, 0, 0]), high=np.array([6, Well.WIDTH - 1, 23, 3, 23 * (Well.WIDTH - 1)]), dtype=np.uint8)
-        # self.observation_space = spaces.Box(
-        #     low=np.array([0, -2, -2, 0, 0]),
-        #     high=np.array([6, Well.WIDTH - 1, 23, 3,
-        #                   (23 * (Well.WIDTH - 1))]),
-        #     dtype=np.int32
-        #     )
-        # self.observation_space = Box(
-        #     low=np.append(np.zeros(Well.WIDTH *
-        #                   Well.DEPTH), np.zeros(Well.WIDTH)),
-        #     high=np.append(
-        #         np.ones(Well.WIDTH * Well.DEPTH), np.full(Well.WIDTH, Well.DEPTH)),
-        #     dtype=np.int32
-        # )
         self.observation_space = Dict({
-            "Column_Height": Box(
-                low=np.zeros(Well.WIDTH),
-                high=np.full(Well.WIDTH, Well.DEPTH),
-                dtype=np.uint8
-            ),
+            # "Column_Height": Box(
+            #     low=np.zeros(Well.WIDTH),
+            #     high=np.full(Well.WIDTH, Well.DEPTH),
+            #     dtype=np.uint8
+            # ),
             "Field": Box(
                 low=np.append(
                     np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
@@ -70,18 +55,6 @@ class Game(Env):
             "PieceID": Box(low=0, high=6, dtype=np.uint8)
         })
 
-        # self.observation_space = spaces.Tuple(
-        #     (
-        #         spaces.Discrete(7),
-        #         spaces.Discrete(10),
-        #         spaces.Discrete(25),
-        #         spaces.Discrete(4),
-        #         spaces.Discrete(2**(62))
-        #     )
-        # )
-        # self.observation_space.shape = np.zeros(7*10*25*4*2**30, dtype=int)
-
-        # #(np.zeros(2**(4*8)), np.zeros(4*9), np.zeros(4), np.zeros(5))
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
@@ -111,8 +84,7 @@ class Game(Env):
         # observation = np.append(np.array(self.field.get_cells_1d()), np.array(
         #     self.field.get_column_heights()))
 
-        observation = np.append(np.array(
-            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.array(self.field.get_cells_1d())
         observation = np.append(observation, self.piece.id)
         return observation
 
@@ -129,19 +101,21 @@ class Game(Env):
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        observation = np.append(np.array(
-            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        # observation = np.append(np.array(
+        #     self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+
+        observation = np.array(self.field.get_cells_1d())
         observation = np.append(observation, self.piece.id)
 
         self.score = self._calc_score()
 
-        # if (self.total_cleared_line >= 3):
-        #     self.score += 10000
+        # if (self.total_cleared_line >= 10):
+        #     self.score += 1000
         #     self.done = True
         # print(observation, self.score, self.done)
 
         if (self.gameover):
-            self.score -= 100
+            self.score -= 10
             self.done = True
 
         self.frame_count = next_frame_count
@@ -150,7 +124,7 @@ class Game(Env):
         reward = self.score - og_score
 
         info = {
-            "frame_count": self.frame_count,
+            # "frame_count": self.frame_count,
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line
         }
@@ -163,13 +137,15 @@ class Game(Env):
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        # r += (self.total_piece)
         r -= (max(self.field.get_column_heights()))
-        # r -= (sum(self.field.get_column_heights()))
+        r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        r -= self.field.get_holes() * 4
-        r += self.total_cleared_line * 100
-        r += self.frame_count * 0.1
+        r -= self.field.get_holes() ** 2
+        r -= self.field.get_bumpiness() ** 2
+        # r -= self.field.get_bumpiness() ** 2
+        r -= self.field.get_deviation() ** 2
+        r += (1000 * self.total_cleared_line)
+        # r += self.total_piece ** 1.1
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
@@ -225,8 +201,8 @@ class Game(Env):
             for x in range(0, 4):
                 if (self.piece.get_char(x, y) == "#"):
                     try:  # TODO: Refactor
-                        self.field.cellses[y + self.piece.y][x +
-                                                             self.piece.x].landed = True
+                        self.field.cellses[y + self.piece.y][x
+                                                             + self.piece.x].landed = True
                     except IndexError:
                         # print("Error:", y + self.piece.y)
                         # self.gameover = True
@@ -265,9 +241,7 @@ class Game(Env):
             self.window.render()
             self.window.update_idletasks()
             self.window.update()
-            time.sleep(0.1)
-            print(self.piece)
-            print("score", self.score)
+            time.sleep(0.2)
 
         elif mode == "ansi":
             self.field.render_wells()
