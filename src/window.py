@@ -59,6 +59,7 @@ class RenderWindow(Tk):
         bumpiness: {self.game.field.get_bumpiness()}
         deviation: {self.game.field.get_deviation()}
         total_cleared_line: {self.game.total_cleared_line}
+        total_piece: {self.game.total_piece}
         score: {self.game.score}
         """
         self.canvas.create_text(Well.WIDTH * SIZE + 150, 100, font=("", 18), text=txt)

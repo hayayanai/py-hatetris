@@ -6,7 +6,7 @@ from gym.spaces import Box
 
 from game import Game
 from actions import ACTIONS
-manual = True
+manual = False
 
 game = Game()
 print(game.action_space)

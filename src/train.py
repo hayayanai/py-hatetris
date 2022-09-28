@@ -4,7 +4,6 @@ import time
 from os import environ
 
 import requests
-from gym.spaces import flatten_space
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
 from keras.optimizers import adam_v2
@@ -16,7 +15,7 @@ from rl.policy import BoltzmannQPolicy
 
 from game import Game
 
-NB_STEPS = 200000
+NB_STEPS = 800000
 
 DEVICE = "cpu"  # ["cpu", "gpu_limited", "gpu_unlimited"]
 
@@ -31,7 +30,7 @@ elif (DEVICE == "gpu_unlimited"):
 env = Game()
 window_length = 1
 # print(flatten_space((env.observation_space)).shape)
-input_shape = (1,) + flatten_space((env.observation_space)).shape
+input_shape = (1,) + (env.observation_space.shape)
 # print(input_shape)
 
 # input_shape = (1,) + env.observation_space.shape
@@ -55,7 +54,7 @@ policy = BoltzmannQPolicy()
 # DQN エージェントの作成
 # agent = SARSAAgent(model=model, nb_actions=nb_actions, nb_steps_warmup=10)
 agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True)
+                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, batch_size=32)
 # DQNAgentのコンパイル
 # 最適化はAdam,評価関数はMAEを使用
 agent.compile(adam_v2.Adam())
@@ -65,7 +64,8 @@ time_start = time.time()
 
 history = agent.fit(env, nb_steps=NB_STEPS, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_IO", overwrite=True)
+agent.save_weights("moving_I.hdf5", overwrite=True)
+# model.save("model_IO")
 
 time_spent = time.time() - time_start
 print(datetime.timedelta(seconds=time_spent))

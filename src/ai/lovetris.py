@@ -12,4 +12,4 @@ class Lovetris(EnemyAi):
         # Return
         Always `I` Piece
         """
-        return Piece(Mino.O)
+        return Piece(Mino.I.value)

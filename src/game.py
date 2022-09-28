@@ -3,7 +3,7 @@ from typing import Literal
 
 import numpy as np
 from gym import Env
-from gym.spaces import Box, Dict, Discrete
+from gym.spaces import Box, Dict, Discrete, flatten_space
 
 from actions import ACTIONS
 from ai.burgiel import Burgiel
@@ -14,7 +14,7 @@ from piece import Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
-EnemyAI = RandomAi
+EnemyAI = Lovetris
 
 
 class Game(Env):
@@ -38,13 +38,12 @@ class Game(Env):
         # 状態の範囲を定義
         ACTION_NUM = len(self.ACTION_MAP)
         self.action_space = Discrete(ACTION_NUM)
-
-        self.observation_space = Dict({
-            # "Column_Height": Box(
-            #     low=np.zeros(Well.WIDTH),
-            #     high=np.full(Well.WIDTH, Well.DEPTH),
-            #     dtype=np.uint8
-            # ),
+        OBSERVATION_SPACE = Dict({
+            "Column_Height": Box(
+                low=np.zeros(Well.WIDTH),
+                high=np.full(Well.WIDTH, Well.DEPTH + 1),
+                dtype=np.uint8
+            ),
             "Field": Box(
                 low=np.append(
                     np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
@@ -55,9 +54,12 @@ class Game(Env):
             "PieceID": Box(low=0, high=6, dtype=np.uint8)
         })
 
+        self.observation_space = flatten_space(OBSERVATION_SPACE)
+
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
+        self.current_cleard_line = 0
         self.total_cleared_line = 0
         self.field = Well()
         self.enemy = EnemyAI()
@@ -71,6 +73,7 @@ class Game(Env):
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
+        self.current_cleard_line = 0
         self.total_cleared_line = 0
         self.field = Well()
         self.enemy = EnemyAI()
@@ -81,10 +84,9 @@ class Game(Env):
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        # observation = np.append(np.array(self.field.get_cells_1d()), np.array(
-        #     self.field.get_column_heights()))
+        observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
 
-        observation = np.array(self.field.get_cells_1d())
+        # observation = np.array(self.field.get_cells_1d())
         observation = np.append(observation, self.piece.id)
         return observation
 
@@ -101,10 +103,10 @@ class Game(Env):
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        # observation = np.append(np.array(
-        #     self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.append(np.array(
+            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
 
-        observation = np.array(self.field.get_cells_1d())
+        # observation = np.array(self.field.get_cells_1d())
         observation = np.append(observation, self.piece.id)
 
         self.score = self._calc_score()
@@ -113,10 +115,6 @@ class Game(Env):
         #     self.score += 1000
         #     self.done = True
         # print(observation, self.score, self.done)
-
-        if (self.gameover):
-            self.score -= 10
-            self.done = True
 
         self.frame_count = next_frame_count
         self.piece.age += 1
@@ -131,24 +129,28 @@ class Game(Env):
 
         return observation, reward, self.done, info
 
-    def _calc_score(self) -> float:
+    def _calc_score(self) -> float | int:
         r = 0.0
         # r += (22 - self.piece.y)
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        r -= (max(self.field.get_column_heights()))
+        r -= (max(self.field.get_column_heights())) ** 1.8
         r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        r -= self.field.get_holes() ** 2
-        r -= self.field.get_bumpiness() ** 2
+        # r -= self.field.get_holes() ** 2
+        # r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
-        r -= self.field.get_deviation() ** 2
-        r += (1000 * self.total_cleared_line)
-        # r += self.total_piece ** 1.1
+        # r -= self.field.get_deviation()
+        # r += (self.current_cleard_line) ** 2
+        r += (self.total_cleared_line) ** 2
+        # r += self.total_piece ** 1.5
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
+        if (self.gameover):
+            self.score -= 100
+            self.done = True
         return r
 
     def _handle_input(self, action: str) -> None:
@@ -209,7 +211,8 @@ class Game(Env):
                         pass
 
         self.total_piece += 1
-        self.total_cleared_line += self.field.delete_lines()
+        self.current_cleard_line = self.field.delete_lines()
+        self.total_cleared_line += self.current_cleard_line
         self.piece = self.get_next_piece()
         self._check_gameover()
 

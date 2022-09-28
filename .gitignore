@@ -130,5 +130,7 @@ dmypy.json
 
 .vscode/
 moving_*
+save_*
+log/
 checkpoint
 graph*
