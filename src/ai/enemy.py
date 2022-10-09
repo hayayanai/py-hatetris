@@ -4,7 +4,8 @@ from piece import Piece
 
 
 class EnemyAi(metaclass=ABCMeta):
-    def __init__(self) -> None:
+    def __init__(self, initial_seed: int | None = None) -> None:
+        self.rng = initial_seed
         pass
 
     @abstractmethod

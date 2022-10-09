@@ -1,5 +1,3 @@
-from random import randint
-
 from piece import Piece
 
 from ai.enemy import EnemyAi
@@ -7,23 +5,29 @@ from collections import deque
 
 
 class SevenAi(EnemyAi):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, initial_seed: int) -> None:
+        super().__init__(initial_seed)
         self.pieces: deque[Piece] = deque()
-        self.rng: int = self._rng()
         self._generate()
         self.piece = self.pieces.popleft()
 
-    def _rng(self):
-        return randint(0, 2**31)
+    def _next_rng(self):
+        """XorShift 32bit
+        """
+        y = self.rng
+        y = y ^ (y << 13)
+        y = y ^ (y >> 17)
+        y = y ^ (y << 5)
+        self.rng = y
+        return self.rng
 
     def _generate(self):
         while len(self.pieces) < 12:
             bag: list[int] = [0, 1, 2, 3, 4, 5, 6]
 
             for i in range(0, 7)[::-1]:  # フィッシャーイェーツ
-                # this.rng = this.rng_next();
-                j = i + (self._rng() % (7 - i))
+                self.rng = self._next_rng()
+                j = i + (self.rng % (7 - i))
                 if (j < 0):
                     j *= -1
 

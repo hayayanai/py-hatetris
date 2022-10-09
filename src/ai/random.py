@@ -6,9 +6,8 @@ from ai.enemy import EnemyAi
 
 
 class RandomAi(EnemyAi):
-    def __init__(self) -> None:
-        super().__init__()
-        pass
+    def __init__(self, initial_seed: int) -> None:
+        super().__init__(initial_seed)
 
     def get_first_piece(self) -> Piece:
         """

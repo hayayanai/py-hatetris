@@ -4,12 +4,8 @@ from ai.enemy import EnemyAi
 
 
 class Lovetris(EnemyAi):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, initial_seed: None = None) -> None:
+        super().__init__(initial_seed)
 
     def get_first_piece(self) -> Piece:
-        """
-        # Return
-        Always `I` Piece
-        """
-        return Piece(Mino.I.value)
+        return Piece(Mino.I)
