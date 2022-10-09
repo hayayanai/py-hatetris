@@ -1,14 +1,28 @@
+from enum import Enum
 from pprint import pprint
 from random import randint
 from time import sleep
 
 from gym.spaces import Box
 
-from game import Game
 from actions import ACTIONS
-manual = False
+from game import Game
 
-game = Game()
+
+class Mode(Enum):
+    MANUAL = 0
+    RANDOM = 1
+    MAX_REPLAY = 2
+
+
+mode = Mode.MAX_REPLAY
+
+if (mode == Mode.MAX_REPLAY):
+    from replay import replay, seed
+    game = Game(seed=seed, replay=replay)
+else:
+    game = Game()
+
 print(game.action_space)
 print(game.observation_space)
 print(game.observation_space.sample())
@@ -18,20 +32,26 @@ if isinstance(space, Box):
     print('    最大値: ', space.high)
 
 while not game.done:
-    if manual:
+
+    if mode == Mode.MANUAL:
         obs, reward, _, info = game.step(action_index=int(input()))
         print("reward:", reward)
         pprint(info)
-        pprint(game.field.get_column_heights())
-        print(game.field.get_holes())
-        print(game.field.get_bumpiness())
-
+        # pprint(game.field.get_column_heights())
+        # print(game.field.get_holes())
+        # print(game.field.get_bumpiness())
         game.render()
-    else:
+
+    elif mode == Mode.RANDOM:
         obs, reward, _, info = game.step(action_index=randint(0, len(ACTIONS) - 1))
         print("reward:", reward)
-        pprint(info)
+        # pprint(info)
         game.render()
-        sleep(0.02)
-    # print("obs:", obs)
-    # print("age", game.piece.age)
+        sleep(0.1)
+        print("obs:", obs)
+        print("age", game.piece.age)
+
+    elif mode == Mode.MAX_REPLAY:
+        obs, reward, _, info = game.step(action_index=None)
+        sleep(0.01)
+        game.render()

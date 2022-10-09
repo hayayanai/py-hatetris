@@ -189,10 +189,13 @@ class Piece():
     rot: int
     age: int
 
-    def __init__(self, piece_id: int = 0) -> None:
+    def __init__(self, piece: int | Mino = Mino.I) -> None:
         self.x = 3
         self.y = 19
-        self.id = piece_id
+        if isinstance(piece, int):
+            self.id = piece
+        elif isinstance(piece, Mino):
+            self.id = piece.value
         self.rot = 0
         self.age = 0
 

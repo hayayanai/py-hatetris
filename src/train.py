@@ -15,7 +15,7 @@ from rl.policy import BoltzmannQPolicy
 
 from game import Game
 
-NB_STEPS = 800000
+NB_STEPS = 20000
 
 DEVICE = "cpu"  # ["cpu", "gpu_limited", "gpu_unlimited"]
 
@@ -64,7 +64,7 @@ time_start = time.time()
 
 history = agent.fit(env, nb_steps=NB_STEPS, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_I.hdf5", overwrite=True)
+agent.save_weights("moving_I2.hdf5", overwrite=True)
 # model.save("model_IO")
 
 time_spent = time.time() - time_start
@@ -84,7 +84,7 @@ plt.ylabel("reward")
 
 plt.savefig("graph.png", format="png")
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1015490794603425803/0YIP0jDBiObdMIzvT6NEeYuxekeIAWCj1_ljths_I-l9Ttr2-XVXRNIj5zwAZFTglzi3"
+WEBHOOK_URL = environ.get("WEBHOOK_URL")
 
 payload = {
     "username": "学習終了",
