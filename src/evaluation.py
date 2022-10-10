@@ -2,7 +2,7 @@ from stable_baselines3 import DQN
 
 from game import Game
 
-env = Game()
+env = Game(save_replay=True)
 model = DQN.load("./save_weights_seven/rl_model_3000000_steps")
 REPEAT = 100
 

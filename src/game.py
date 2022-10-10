@@ -35,28 +35,14 @@ class Game(Env):
     replay: deque[str] | None
     seed: int
 
-    def __init__(self, replay: deque[str] | None = None, seed: int | None = None) -> None:
+    def __init__(self, replay: deque[str] | None = None, seed: int | None = None, save_replay: bool = False) -> None:
         super().__init__()
+        self.save_replay: bool = save_replay
         from window import RenderWindow
         self.window: RenderWindow | None = None
         ACTION_NUM = len(self.ACTION_MAP)
         self.action_space = Discrete(ACTION_NUM)
-        OBSERVATION_SPACE = Dict({
-            "Column_Height": Box(
-                low=np.zeros(Well.WIDTH),
-                high=np.full(Well.WIDTH, Well.DEPTH + 1),
-                dtype=np.uint8
-            ),
-            "Field": Box(
-                low=np.append(
-                    np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
-                high=np.append(
-                    np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
-                dtype=np.uint8
-            ),
-            "PieceID": Box(low=0, high=6, dtype=np.uint8)
-        })
-        self.observation_space = flatten_space(OBSERVATION_SPACE)
+        self.observation_space = self.OBSERVATION_SPACE
 
         if replay is None:
             self.replay = deque()
@@ -100,14 +86,8 @@ class Game(Env):
         self.piece_pos_y = self.piece.y
         self.gameover = False
         self.done = False
-        # observation = np.array(
-        #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-
-        # observation = np.array(self.field.get_cells_1d())
-        observation = np.append(observation, self.piece.id)
-        return observation
+        return self._get_observation()
 
     def step(self, action_index: int | None) -> tuple[np.ndarray, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
@@ -116,16 +96,12 @@ class Game(Env):
         # is_gameover: bool = False
 
         action_player = self.ACTION_MAP[action_index]
-        if action_index is None:
+        if action_index is None:  # Play replay
             self._handle_input(self.replay.popleft(), save=False)
         else:
             self._handle_input(action_player)
 
-        observation = np.append(np.array(
-            self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-
-        # observation = np.array(self.field.get_cells_1d())
-        observation = np.append(observation, self.piece.id)
+        observation = self._get_observation()
 
         self.score = self._calc_score()
 
@@ -143,6 +119,36 @@ class Game(Env):
         }
 
         return observation, reward, self.done, info
+
+    @property
+    def OBSERVATION_SPACE(self):
+        OBS_SPACE = Dict({
+            "Column_Height": Box(
+                low=np.zeros(Well.WIDTH),
+                high=np.full(Well.WIDTH, Well.DEPTH + 1),
+                dtype=np.uint8
+            ),
+            "Field": Box(
+                low=np.append(
+                    np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
+                high=np.append(
+                    np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
+                dtype=np.uint8
+            ),
+            "PieceID": Box(low=0, high=6, dtype=np.uint8)
+        })
+        return flatten_space(OBS_SPACE)
+
+    def _get_observation(self) -> np.ndarray:
+        # observation = np.array(
+        #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
+
+        observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+
+        # observation = np.array(self.field.get_cells_1d())
+        observation = np.append(observation, self.piece.id)
+
+        return observation
 
     def _calc_score(self) -> float | int:
         r = 0.0
@@ -164,9 +170,14 @@ class Game(Env):
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
-        if (self.gameover):
+        if self.gameover:
             self.score -= 500
             self.done = True
+
+        if self.total_cleared_line > 100:
+            self.score += 10000
+            self.done = True
+
         return r
 
     def _handle_input(self, action: str, save=True) -> None:
@@ -176,22 +187,22 @@ class Game(Env):
         if len(action) == 1:
             if (action == "D"):
                 self.piece.y -= 1
-                if save:
+                if save and self.save_replay:
                     self.replay.append("D")
             elif (action == "L"):
                 self.piece.x -= 1
-                if save:
+                if save and self.save_replay:
                     self.replay.append("L")
             elif (action == "R"):
                 self.piece.x += 1
-                if save:
+                if save and self.save_replay:
                     self.replay.append("R")
             elif (action == "U"):
                 self.piece.rot = (self.piece.rot + 1) % 4
-                if save:
+                if save and self.save_replay:
                     self.replay.append("U")
             elif (action == "H"):
-                if save:
+                if save and self.save_replay:
                     self.replay.append("H")
                 obj_id = id(self.piece)
                 while obj_id == id(self.piece):
@@ -211,9 +222,9 @@ class Game(Env):
 
     def _is_piece_movable(self) -> bool:
         move = True
-        for y in range(0, 4):
-            for x in range(0, 4):
-                if (self.piece.get_char(x, y) == "#"):
+        for y in range(4):
+            for x in range(4):
+                if self.piece.get_char(x, y) == "#":
                     try:
                         # 頭を抱える。
                         # if (self.field.cellses[y + self.piece.y][x + self.piece.x].landed or x + self.piece.x < 0 or self.piece.y < -1):
@@ -227,7 +238,7 @@ class Game(Env):
     def _lock_piece(self) -> None:
         for y in range(4):
             for x in range(4):
-                if (self.piece.get_char(x, y) == "#"):
+                if self.piece.get_char(x, y) == "#":
                     try:  # TODO: Refactor
                         self.field.cellses[y + self.piece.y][x
                                                              + self.piece.x].landed = True
