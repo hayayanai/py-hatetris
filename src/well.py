@@ -33,6 +33,16 @@ class Well:
                 cells.append(Cell(landed=False, live=False))
             self.cellses.append(cells)
 
+    def __deepcopy__(self):
+        well = Well()
+        cellses = []
+        for y in range(0, Well.DEPTH):
+            cells = []
+            for x in range(0, Well.WIDTH):
+                cells.append(Cell(landed=self.at(x, y).landed, live=False))
+            cellses.append(cells)
+        return well
+
     def at(self, x: int, y: int) -> Cell:
         """
         Negative index value raises IndexError.
@@ -126,6 +136,25 @@ class Well:
                         if (self.at(x, yy).landed):
                             count += 1
                             break
+        return count
+
+    def get_enclosed_holes(self) -> int:
+        """
+        上方向にブロックがある空白のうち、空白を辿ったとき、最上部に到達できない空白の個数
+        """
+        count = 0
+        lis = []
+        for y in range(0, Well.DEPTH)[::-1]:
+            for x in range(0, Well.WIDTH):
+                if (not self.at(x, y).landed):
+                    for yy in range(y + 1, Well.DEPTH):
+                        if (self.at(x, yy).landed):
+                            lis.append((x, y))
+        for p in lis:
+            x, y = p
+            s_y = y
+            while s_y < Well.DEPTH:
+                s_y += 1
         return count
 
     def get_bumpiness(self) -> int:
