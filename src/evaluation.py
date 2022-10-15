@@ -13,7 +13,7 @@ def evaluate(step: int = 4000000, repeat: int = 2000) -> tuple:
     max_replay = []
     max_replay_seed = -1
 
-    for _ in range(repeat):
+    for i in range(repeat):
         obs = env.reset(regenerate=True)
         while True:
             action, _states = model.predict(obs)
@@ -26,7 +26,8 @@ def evaluate(step: int = 4000000, repeat: int = 2000) -> tuple:
                 pieces.append(info["total_piece"])
                 lines.append(info["total_cleared_line"])
                 break
-    env.close()
+        print(f"\r{i+1} / {repeat}", end="")
+    print()
 
     with open("src/replay.py", mode="w") as f:
         f.writelines("from collections import deque\n\n")
@@ -38,4 +39,7 @@ def evaluate(step: int = 4000000, repeat: int = 2000) -> tuple:
 
 if __name__ == "__main__":
     from pprint import pprint
-    pprint(evaluate(400_0000))
+    pprint(evaluate(100_0000, repeat=1000))
+    pprint(evaluate(200_0000, repeat=1000))
+    pprint(evaluate(300_0000, repeat=1000))
+    pprint(evaluate(400_0000, repeat=1000))

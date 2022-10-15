@@ -11,8 +11,15 @@ from evaluation import evaluate
 from game import Game
 
 TIMESTEPS = 4_000_000
-BATCH_SIZE = 256
+BATCH_SIZE = 64
 DEVICE = "cuda"  # ["cpu", "cuda", "auto"]
+seed = 20221015
+
+webhook_url = environ.get("WEBHOOK_URL")
+
+if webhook_url is None:
+    print("webhook_url is None")
+    exit()
 
 env = Game()
 model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="log", device=DEVICE, batch_size=BATCH_SIZE)
@@ -30,14 +37,17 @@ del model
 
 print(datetime.timedelta(seconds=time_spent))
 
-WEBHOOK_URL = environ.get("WEBHOOK_URL")
+print(evaluate(100_0000, repeat=1000))
+print(evaluate(200_0000, repeat=1000))
+print(evaluate(300_0000, repeat=1000))
 
 ave, mx = evaluate()
+print(ave, mx)
 
 payload = {
     "username": "学習終了",
     "content": f"total_timesteps: {TIMESTEPS}\nDuration: {datetime.timedelta(seconds=time_spent)}\nAverage: {ave}\nMax: {mx}"
 }
 
-res = requests.post(WEBHOOK_URL, {"payload_json": json.dumps(payload)})
+res = requests.post(webhook_url, {"payload_json": json.dumps(payload)})
 print("res.status_code", res.status_code)

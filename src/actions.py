@@ -1,4 +1,50 @@
-ACTIONS = [
+action2 = [
+    # "D",
+    "LLLLH",
+    "LLLH",
+    "LLH",
+    "LH",
+    "H",
+    "RH",
+    "RRH",
+    "RRRH",
+    "RRRRH",
+    "ULLLLLH",
+    "ULLLLH",
+    "ULLLH",
+    "ULLH",
+    "ULH",
+    "UH",
+    "URH",
+    "URRH",
+    "URRRH",
+    "URRRRH",
+    "URRRRRH",
+
+    "UULLLLH",
+    "UULLLH",
+    "UULLH",
+    "UULH",
+    "UUH",
+    "UURH",
+    "UURRH",
+    "UURRRH",
+    "UURRRRH",
+
+    "UUULLLLLH",
+    "UUULLLLH",
+    "UUULLLH",
+    "UUULLH",
+    "UUULH",
+    "UUUH",
+    "UUURH",
+    "UUURRH",
+    "UUURRRH",
+    "UUURRRRH",
+    "UUURRRRRH"
+]
+
+action1 = [
     "D"
     "LLLLLH",
     "LLLLH",
@@ -58,3 +104,5 @@ ACTIONS = [
     "URURURRH",
     "URURURRRH",
 ]
+
+ACTIONS = action2
