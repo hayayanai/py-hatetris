@@ -33,7 +33,7 @@ class Well:
                 cells.append(Cell(landed=False, live=False))
             self.cellses.append(cells)
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         well = Well()
         cellses = []
         for y in range(0, Well.DEPTH):
