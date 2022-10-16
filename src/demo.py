@@ -1,6 +1,5 @@
 from os import environ
 
-import gym.spaces
 from keras.layers import Dense, Flatten
 from keras.models import Sequential
 from keras.optimizers import adam_v2
@@ -24,7 +23,7 @@ elif (DEVICE == "gpu_unlimited"):
 
 env = Game()
 window_length = 1
-input_shape = (1,) + (env.observation_space.shape)
+input_shape = (window_length,) + (env.observation_space.shape)
 print(input_shape)
 nb_actions = env.action_space.n
 
