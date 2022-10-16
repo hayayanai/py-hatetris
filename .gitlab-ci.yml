@@ -1,0 +1,33 @@
+# Docker Imageを指定
+image: python:3.10.4-alpine3.15
+
+# キャッシュの保存先
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# pip installしたものをキャッシュするためにvirtualenvを導入
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+# 実行前スクリプト
+before_script:
+  - python -V
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - export PYTHONPATH=./
+  - pip install flake8 pytest pytest-cov
+
+
+# testというstageを使う
+# 長さ79文字以下は無視
+test:
+  script:
+    # - python setup.py test
+    - flake8 *.py --exclude venv/,.cache --ignore E501,E741,W502
+    - pytest --cov=src tests/
+  # only:
+  #   refs:
+  #     - merge_requests
