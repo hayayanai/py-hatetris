@@ -26,7 +26,7 @@ before_script:
 test:
   script:
     # - python setup.py test
-    - flake8 *.py --exclude venv/,.cache --ignore E501,E741,W502
+    - flake8 --exclude .venv/,.cache --ignore E501,E741,W502
     - pytest --cov=src tests/
   # only:
   #   refs:
