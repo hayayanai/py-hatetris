@@ -1,6 +1,6 @@
-from random import randint
 import time
 from collections import deque
+from random import randint
 from typing import Literal
 
 import numpy as np
@@ -9,13 +9,14 @@ from gym.spaces import Box, Dict, Discrete, flatten_space
 
 from actions import ACTIONS
 from ai.burgiel import Burgiel
+from ai.hatetris import HatetrisAi
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
 from piece import Piece
 from well import Well
 
-AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
+AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
 EnemyAI = SevenAi
 
 
@@ -89,9 +90,14 @@ class Game(Env):
 
         return self._get_observation()
 
+    def seed(self, seed: int = 111):
+        self.seed = seed
+        np.random.seed = seed
+
     def step(self, action_index: int | None) -> tuple[np.ndarray, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
         og_score = self.score
+        og_piece = self.piece
         self.score = 0.0
         # is_gameover: bool = False
 
@@ -99,9 +105,11 @@ class Game(Env):
         if action_index is None:  # Play replay
             self._handle_input(self.replay.popleft(), save=False)
         else:
+            if self.save_replay:
+                self.replay.append(action_player)
             self._handle_input(action_player)
 
-        observation = self._get_observation()
+        observation = self._get_observation(og_piece)
 
         self.score = self._calc_score()
 
@@ -128,24 +136,28 @@ class Game(Env):
                 high=np.full(Well.WIDTH, Well.DEPTH + 1),
                 dtype=np.uint8
             ),
-            "Field": Box(
-                low=np.append(
-                    np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
-                high=np.append(
-                    np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
-                dtype=np.uint8
-            ),
-            "PieceID": Box(low=0, high=6, dtype=np.uint8)
+            # "Field": Box(
+            #     low=np.append(
+            #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
+            #     high=np.append(
+            #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
+            #     dtype=np.uint8
+            # ),
+            # "Holes": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            "PieceID1": Box(low=0, high=6, dtype=np.uint8),
         })
         return flatten_space(OBS_SPACE)
 
-    def _get_observation(self) -> np.ndarray:
+    def _get_observation(self, next_piece=None) -> np.ndarray:
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
-        observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.array(self.field.get_column_heights())
 
-        # observation = np.array(self.field.get_cells_1d())
+        # observation = np.append(observation, np.array(self.field.get_cells_1d()))
+        # observation = np.append(observation, self.field.get_holes())
+
         observation = np.append(observation, self.piece.id)
 
         return observation
@@ -159,13 +171,12 @@ class Game(Env):
         r -= (max(self.field.get_column_heights()))
         # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        r -= self.field.get_holes() * 2
+        r -= self.field.get_holes() * 10
         # r -= self.field.get_holes() ** 2
         r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
         r -= self.field.get_deviation()
-        # r += (self.current_cleard_line) ** 2
-        r += (self.total_cleared_line) * 100
+        r += (self.total_cleared_line * 200)
         # r += self.total_piece ** 1.5
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
@@ -187,23 +198,13 @@ class Game(Env):
         if len(action) == 1:
             if (action == "D"):
                 self.piece.y -= 1
-                if save and self.save_replay:
-                    self.replay.append("D")
             elif (action == "L"):
                 self.piece.x -= 1
-                if save and self.save_replay:
-                    self.replay.append("L")
             elif (action == "R"):
                 self.piece.x += 1
-                if save and self.save_replay:
-                    self.replay.append("R")
             elif (action == "U"):
                 self.piece.rot = (self.piece.rot + 1) % 4
-                if save and self.save_replay:
-                    self.replay.append("U")
             elif (action == "H"):
-                if save and self.save_replay:
-                    self.replay.append("H")
                 obj_id = id(self.piece)
                 while obj_id == id(self.piece):
                     self._handle_input("D", save=False)
@@ -228,7 +229,7 @@ class Game(Env):
                     try:
                         # 頭を抱える。
                         # if (self.field.cellses[y + self.piece.y][x + self.piece.x].landed or x + self.piece.x < 0 or self.piece.y < -1):
-                        if (self.field.at(x + self.piece.x, y + self.piece.y).landed):
+                        if (self.field.at(x + self.piece.x, 3 - y + self.piece.y).landed):
                             move = False
                     except IndexError:
                         move = False
@@ -240,8 +241,7 @@ class Game(Env):
             for x in range(4):
                 if self.piece.get_char(x, y) == "#":
                     try:  # TODO: Refactor
-                        self.field.cellses[y + self.piece.y][x
-                                                             + self.piece.x].landed = True
+                        self.field.cellses[3 - y + self.piece.y][x + self.piece.x].landed = True
                     except IndexError:
                         # print("Error:", y + self.piece.y)
                         # self.gameover = True

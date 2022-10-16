@@ -44,10 +44,13 @@ class RenderWindow(Tk):
                         x * SIZE, y * SIZE, (x + 1) * SIZE, (y + 1) * SIZE, fill="white")
 
     def _render_piece(self):
+        print(self.game.piece)
         for _y in range(0, 4):
             for x in range(0, 4):
                 if (self.game.piece.get_char(x, _y) == "#"):
-                    y = -_y + Well.DEPTH - self.game.piece.y - 1
+                    # y = -_y + Well.DEPTH - self.game.piece.y - 1
+                    y = Well.DEPTH - self.game.piece.y + _y - 4
+                    print(y)
                     self.canvas.create_rectangle(
                         (x + self.game.piece.x) * SIZE, y * SIZE, (x + self.game.piece.x + 1) * SIZE, (y + 1) * SIZE, fill="red")
 
@@ -63,3 +66,37 @@ class RenderWindow(Tk):
         score: {self.game.score}
         """
         self.canvas.create_text(Well.WIDTH * SIZE + 150, 100, font=("", 18), text=txt)
+
+
+# class RenderServer():
+#     from flask import Flask
+
+#     app = Flask(__name__, static_folder=None)
+
+#     @app.route("/")
+#     def processing():
+#         response = """
+#     <html>
+#     <head>
+#         <title>Processing</title>
+#         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+#         </script>
+#         <script id="processing-code">
+#             function setup() {{
+#                 createCanvas({w}, {h});
+#             }}
+
+#             function draw() {{
+#                 background(51);
+#             }}
+#         </script>
+#     </head>
+#     <body>
+#     </body>
+#     """.format(w=WIDTH, h=HEIGHT)
+#         return response
+
+
+# if __name__ == "__main__":
+#     server = RenderServer()
+#     server.app.run(debug=True, host="0.0.0.0", port=5000)
