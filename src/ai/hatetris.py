@@ -12,10 +12,9 @@ class HatetrisAi(EnemyAi):
     # ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
     WORST_PIECES = [4, 6, 3, 0, 2, 1, 5]
 
-    def __init__(self, initial_seed: int, field: Well) -> None:
-        super().__init__(initial_seed)
+    def __init__(self, field: Well, initial_seed: None = None) -> None:
+        super().__init__(field=field)
         self.piece = self.get_first_piece()
-        self.field = field
         self.reflesh_piece = False
 
     def get_first_piece(self) -> Piece:
@@ -108,7 +107,7 @@ class HatetrisAi(EnemyAi):
             for x in range(4):
                 if piece.get_char(x, y) == "#":
                     try:
-                        if (field.at(x + piece.x, y + piece.y).landed):
+                        if (field.at(x + piece.x, 3 - y + piece.y).landed):
                             move = False
                     except IndexError:
                         move = False
@@ -119,7 +118,7 @@ class HatetrisAi(EnemyAi):
             for x in range(4):
                 if piece.get_char(x, y) == "#":
                     try:  # TODO: Refactor
-                        field.cellses[y + piece.y][x + piece.x].landed = True
+                        field.cellses[3 - y + piece.y][x + piece.x].landed = True
                     except IndexError:
                         pass
         _ = field.delete_lines()

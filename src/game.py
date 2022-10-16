@@ -65,7 +65,7 @@ class Game(Env):
         self.current_cleard_line = 0
         self.total_cleared_line = 0
         self.field = Well()
-        self.enemy = EnemyAI(self.seed)
+        self.enemy = EnemyAI(initial_seed=self.seed, field=self.field)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
@@ -82,7 +82,7 @@ class Game(Env):
         if regenerate:
             self.seed = randint(0, 2**32 - 1)
             self.replay = deque()
-        self.enemy = EnemyAI(initial_seed=self.seed)
+        self.enemy = EnemyAI(initial_seed=self.seed, field=self.field)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False

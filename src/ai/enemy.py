@@ -1,11 +1,13 @@
 from abc import ABCMeta, abstractmethod
 
 from piece import Piece
+from well import Well
 
 
 class EnemyAi(metaclass=ABCMeta):
-    def __init__(self, initial_seed: int | None = None) -> None:
+    def __init__(self, initial_seed: int | None = None, field: Well | None = None) -> None:
         self.rng = initial_seed
+        self.field = field
         pass
 
     @abstractmethod

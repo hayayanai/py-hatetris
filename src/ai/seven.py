@@ -5,7 +5,7 @@ from collections import deque
 
 
 class SevenAi(EnemyAi):
-    def __init__(self, initial_seed: int) -> None:
+    def __init__(self, initial_seed: int, field: None = None) -> None:
         super().__init__(initial_seed)
         self.pieces: deque[Piece] = deque()
         self._generate()
