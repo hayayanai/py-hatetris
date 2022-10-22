@@ -15,9 +15,10 @@ from game import Game
 # DEVICE = "cuda"  # ["cpu", "cuda", "auto"]
 seed = 20221015
 
+NOTIFICATION = False
 webhook_url = environ.get("WEBHOOK_URL")
 
-if webhook_url is None:
+if webhook_url is None and NOTIFICATION:
     print("webhook_url is None")
     exit()
 
@@ -43,15 +44,15 @@ def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, devic
     #     print(evaluate(model_name=model_name, step=i * (timesteps // 10), repeat=1000, verbose=1))
 
     ave, mx = evaluate(model_name=model_name, step=timesteps, repeat=1000, verbose=1)
-    # print(ave, mx)
+    print(model_name, ave, mx)
 
     payload = {
         "username": "学習終了",
         "content": f"{model_name}\ntotal_timesteps: {timesteps}\nDuration: {datetime.timedelta(seconds=time_spent)}\nAverage: {ave}\nMax: {mx}"
     }
-
-    res = requests.post(webhook_url, {"payload_json": json.dumps(payload)})
-    print("res.status_code", res.status_code)
+    if NOTIFICATION and webhook_url is not None:
+        res = requests.post(webhook_url, {"payload_json": json.dumps(payload)})
+        print("res.status_code", res.status_code)
 
 
 if __name__ == "__main__":
