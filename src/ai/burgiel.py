@@ -30,8 +30,8 @@ class Burgiel(EnemyAi):
         self.current_piece: Mino = Mino.S
 
     def get_first_piece(self) -> Piece:
-        return Piece(Mino.S.value)
+        return Piece(Mino.S)
 
     def get_next_piece(self) -> Piece:
         self.current_piece = Mino.Z if self.current_piece == Mino.S else Mino.S
-        return Piece(self.current_piece.value)
+        return Piece(self.current_piece)

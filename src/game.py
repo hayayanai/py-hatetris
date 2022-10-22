@@ -131,11 +131,15 @@ class Game(Env):
     @property
     def OBSERVATION_SPACE(self):
         OBS_SPACE = Dict({
+            "Aggregate_Height": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            "Bumpiness": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             "Column_Height": Box(
                 low=np.zeros(Well.WIDTH),
                 high=np.full(Well.WIDTH, Well.DEPTH + 1),
                 dtype=np.uint8
             ),
+            "Column_Transitions": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
             #     low=np.append(
             #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
@@ -143,8 +147,11 @@ class Game(Env):
             #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
             #     dtype=np.uint8
             # ),
-            # "Holes": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-            "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+            "Holes": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+            "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+            "Row_Transitions": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+
         })
         return flatten_space(OBS_SPACE)
 
@@ -153,36 +160,41 @@ class Game(Env):
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
 
         # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-        observation = np.array(self.field.get_column_heights())
-
+        observation = np.array(sum(self.field.get_column_heights()))
+        observation = np.append(observation, np.array(self.field.get_bumpiness()))
+        observation = np.append(observation, np.array(self.field.get_column_heights()))
+        observation = np.append(observation, self.field.get_column_transitions())
+        observation = np.append(observation, self.field.get_cumulative_wells())
         # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-        # observation = np.append(observation, self.field.get_holes())
-
-        observation = np.append(observation, self.piece.id)
+        observation = np.append(observation, self.field.get_holes())
+        # observation = np.append(observation, self.piece.id)
+        observation = np.append(observation, self.current_cleard_line)
+        observation = np.append(observation, self.field.get_row_transitions())
 
         return observation
 
     def _calc_score(self) -> float | int:
         r = 0.0
-        r += (22 - self.piece.y)
+        # r += (22 - self.piece.y)
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        r -= (max(self.field.get_column_heights()))
+        # r -= (max(self.field.get_column_heights()))
         # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        r -= self.field.get_holes() * 10
+        # r -= self.field.get_holes() * 3
         # r -= self.field.get_holes() ** 2
-        r -= self.field.get_bumpiness()
+        # r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
-        r -= self.field.get_deviation()
-        r += (self.total_cleared_line * 200)
-        # r += self.total_piece ** 1.5
+        # r -= self.field.get_deviation()
+        r += self.current_cleard_line ** 2 * 100
+        # r += (self.total_cleared_line * 1000)
+        r += self.total_piece
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
         if self.gameover:
-            self.score -= 500
+            self.score -= 10
             self.done = True
 
         if self.total_cleared_line > 100:

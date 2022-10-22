@@ -44,13 +44,11 @@ class RenderWindow(Tk):
                         x * SIZE, y * SIZE, (x + 1) * SIZE, (y + 1) * SIZE, fill="white")
 
     def _render_piece(self):
-        print(self.game.piece)
         for _y in range(0, 4):
             for x in range(0, 4):
                 if (self.game.piece.get_char(x, _y) == "#"):
                     # y = -_y + Well.DEPTH - self.game.piece.y - 1
                     y = Well.DEPTH - self.game.piece.y + _y - 4
-                    print(y)
                     self.canvas.create_rectangle(
                         (x + self.game.piece.x) * SIZE, y * SIZE, (x + self.game.piece.x + 1) * SIZE, (y + 1) * SIZE, fill="red")
 

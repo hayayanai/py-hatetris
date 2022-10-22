@@ -1,5 +1,5 @@
-gym~=0.26.2
 keras-rl2==1.0.5
 matplotlib==3.5.3
 stable-baselines3>=1.6.2
 torch-tb-profiler>=0.4.0
+--extra-index-url https://download.pytorch.org/whl/cu116

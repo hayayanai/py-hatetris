@@ -76,7 +76,7 @@ class Well:
                     res.append(0)
         return res
 
-    def get_cells_decimal(self) -> int:
+    def _get_cells_decimal(self) -> int:
         return int(("".join(map(str, self.get_cells_1d()))), 2)
 
     def delete_lines(self) -> int:
@@ -178,6 +178,62 @@ class Well:
         for x in lis:
             v += abs(x - mean)
         return v
+
+    def get_row_transitions(self) -> int:
+        """Returns the number of horizontal cell transitions."""
+        total = 0
+        for y in range(Well.DEPTH):
+            row_count = 0
+            last_empty = False
+            for x in range(Well.WIDTH):
+                empty = self.at(x, y).landed is False
+                if last_empty != empty:
+                    row_count += 1
+                    last_empty = empty
+
+            if last_empty:
+                row_count += 1
+
+            if last_empty and row_count == 2:
+                continue
+
+            total += row_count
+        return total
+
+    def get_column_transitions(self) -> int:
+        """Returns the number of vertical cell transitions."""
+        total = 0
+        for x in range(Well.WIDTH):
+            column_count = 0
+            last_empty = False
+            for y in reversed(range(Well.DEPTH)):
+                empty = self.at(x, y).landed is False
+                if last_empty and not empty:
+                    column_count += 2
+                last_empty = empty
+
+            if last_empty and column_count == 1:
+                continue
+
+            total += column_count
+        return total
+
+    def get_cumulative_wells(self):
+        """Returns the sum of all wells."""
+        wells = [0 for _ in range(Well.WIDTH)]
+        for y, row in enumerate(self.cellses):
+            left_empty = True
+            for x, code in enumerate(row):
+                if code.landed is False:
+                    well = False
+                    right_empty = Well.WIDTH > x + 1 >= 0 and self.at(x + 1, y).landed is False
+                    if left_empty or right_empty:
+                        well = True
+                    wells[x] = 0 if well else wells[x] + 1
+                    left_empty = True
+                else:
+                    left_empty = False
+        return sum(wells)
 
     def render_wells(self):
         for y in range(0, Well.DEPTH)[::-1]:
