@@ -6,9 +6,12 @@ from os import environ
 import requests
 from stable_baselines3 import DQN
 from stable_baselines3.common.callbacks import CheckpointCallback
+from torch.cuda import is_available
 
 from evaluation import evaluate
 from game import Game
+
+print("torch.cuda.is_available():", is_available())
 
 # TIMESTEPS = 8_000_000
 # BATCH_SIZE = 128
@@ -28,6 +31,7 @@ def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, devic
     model = DQN("MlpPolicy", env, verbose=0, tensorboard_log="log", device=device, batch_size=batch_size)
 
     print("START!")
+    print(model_name, batch_size, timesteps, device)
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
         save_freq=timesteps // 40, save_path=f"{model_name}/")
@@ -56,11 +60,14 @@ def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, devic
 
 
 if __name__ == "__main__":
-    from multiprocessing import Pool
-    args = []
-    size = [(64, "cpu"), (128, "cpu"), (256, "cuda"), (512, "cuda")]
-    steps = 6000000
-    for s in size:
-        args.append((f"save_weights_seven_{s[0]}", s[0], steps, s[1]))
-    with Pool(4) as p:
-        p.starmap(train, args)
+    import argparse
+
+    # size = [(64, "cpu"), (128, "cpu"), (256, "cuda"), (512, "cuda")]
+    # steps = 6000000
+    parser = argparse.ArgumentParser(description="Train with Stable Baselines3")
+    parser.add_argument("name", type=str, help="model name")
+    parser.add_argument("batch_size", type=int, help="batch size")
+    parser.add_argument("step", type=int, help="timesteps")
+    parser.add_argument("device", type=str, help="cpu | cuda | auto", default="cuda")
+    args = parser.parse_args()
+    train(args.name, batch_size=args.batch_size, timesteps=args.step, device=args.device)
