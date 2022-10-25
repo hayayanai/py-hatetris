@@ -9,7 +9,7 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from torch.cuda import is_available
 
 from evaluation import evaluate
-from game import Game
+from game import GameEnv
 
 print("torch.cuda.is_available():", is_available())
 
@@ -27,7 +27,7 @@ if webhook_url is None and NOTIFICATION:
 
 
 def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, device: str = "cuda"):
-    env = Game()
+    env = GameEnv()
     model = DQN("MlpPolicy", env, verbose=0, tensorboard_log="log", device=device, batch_size=batch_size)
 
     print("START!")

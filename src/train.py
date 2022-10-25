@@ -13,7 +13,7 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 
-from game import Game
+from game import GameEnv
 
 NB_STEPS = 300_0000
 
@@ -27,7 +27,7 @@ elif (DEVICE == "gpu_unlimited"):
     pass
 
 
-env = Game()
+env = GameEnv()
 window_length = 1
 # print(flatten_space((env.observation_space)).shape)
 input_shape = (1,) + (env.observation_space.shape)

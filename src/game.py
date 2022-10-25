@@ -5,7 +5,7 @@ from typing import Literal
 
 import numpy as np
 from gym import Env
-from gym.spaces import Box, Dict, Discrete, flatten_space
+from gym.spaces import Box, Discrete, flatten_space
 
 from actions import ACTIONS
 from ai.burgiel import Burgiel
@@ -20,7 +20,7 @@ AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
 EnemyAI = SevenAi
 
 
-class Game(Env):
+class GameEnv(Env):
     piece: Piece
     piece_pos_y: int
     # hold: number;
@@ -135,97 +135,64 @@ class Game(Env):
 
     @property
     def OBSERVATION_SPACE(self):
-        OBS_SPACE = Dict({
-            # "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
-            # "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-            "Column_Height": Box(
-                low=np.zeros(Well.WIDTH),
-                high=np.full(Well.WIDTH, Well.DEPTH + 1),
-                dtype=np.uint8
-            ),
-            # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
-            # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-            # "Field": Box(
-            #     low=np.append(
-            #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
-            #     high=np.append(
-            #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
-            #     dtype=np.uint8
-            # ),
-            # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-            # "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
-            "PieceID1": Box(low=0, high=6, dtype=np.uint8),
-            # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
-            # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
+        # np.array(list[9個], list)
+        mx_list = [
+            7 * Well.DEPTH + 3 * 18,
+            (Well.WIDTH - 1) * Well.DEPTH,
+            180,
+            Well.WIDTH * Well.DEPTH,
+            (Well.WIDTH - 1) * Well.DEPTH,
+            23,
+            4,
+            180] * len(self.ACTION_MAP)
+        print(np.array(mx_list))
+        OBS_SPACE = Box(low=np.zeros(len(mx_list)),
+                        high=np.array(mx_list),
+                        dtype=np.uint8)
+        # OBS_SPACE = Dict({
+        #     "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
+        #     "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+        #     "Column_Height": Box(
+        #         low=np.zeros(Well.WIDTH),
+        #         high=np.full(Well.WIDTH, Well.DEPTH + 1),
+        #         dtype=np.uint8
+        #     ),
+        #     "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
+        #     "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+        #     # "Field": Box(
+        #     #     low=np.append(
+        #     #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
+        #     #     high=np.append(
+        #     #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
+        #     #     dtype=np.uint8
+        #     # ),
+        #     "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+        #     "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
+        #     # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+        #     "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+        #     "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
-        })
+        # })
         return flatten_space(OBS_SPACE)
 
     def _get_observation(self, next_piece=None) -> np.ndarray:
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
-        observation = np.array(self.field.get_column_heights())
-        # observation = np.append(np.array(observation, np.array(self.field.get_cells_1d()))
-        # observation = np.array(sum(self.field.get_column_heights()))
-        # observation = np.append(observation, np.array(self.field.get_bumpiness()))
+
+        # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        observation = np.array(sum(self.field.get_column_heights()))
+        observation = np.append(observation, np.array(self.field.get_bumpiness()))
         # observation = np.append(observation, np.array(self.field.get_column_heights()))
-        # observation = np.append(observation, self.field.get_column_transitions())
-        # observation = np.append(observation, self.field.get_cumulative_wells())
+        observation = np.append(observation, self.field.get_column_transitions())
+        observation = np.append(observation, self.field.get_cumulative_wells())
         # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-        # observation = np.append(observation, self.field.get_holes())
-        observation = np.append(observation, self.piece.id)
-        # observation = np.append(observation, self.landing_height)
-        # observation = np.append(observation, self.current_cleard_line)
-        # observation = np.append(observation, self.field.get_row_transitions())
+        observation = np.append(observation, self.field.get_holes())
+        # observation = np.append(observation, self.piece.id)
+        observation = np.append(observation, self.landing_height)
+        observation = np.append(observation, self.current_cleard_line)
+        observation = np.append(observation, self.field.get_row_transitions())
 
         return observation
-
-    # @property
-    # def OBSERVATION_SPACE(self):
-    #     OBS_SPACE = Dict({
-    #         "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
-    #         "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-    #         # "Column_Height": Box(
-    #         #     low=np.zeros(Well.WIDTH),
-    #         #     high=np.full(Well.WIDTH, Well.DEPTH + 1),
-    #         #     dtype=np.uint8
-    #         # ),
-    #         "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
-    #         "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-    #         # "Field": Box(
-    #         #     low=np.append(
-    #         #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
-    #         #     high=np.append(
-    #         #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
-    #         #     dtype=np.uint8
-    #         # ),
-    #         "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-    #         "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
-    #         # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
-    #         "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
-    #         "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
-
-    #     })
-    #     return flatten_space(OBS_SPACE)
-
-    # def _get_observation(self, next_piece=None) -> np.ndarray:
-    #     # observation = np.array(
-    #     #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
-
-    #     # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-    #     observation = np.array(sum(self.field.get_column_heights()))
-    #     observation = np.append(observation, np.array(self.field.get_bumpiness()))
-    #     # observation = np.append(observation, np.array(self.field.get_column_heights()))
-    #     observation = np.append(observation, self.field.get_column_transitions())
-    #     observation = np.append(observation, self.field.get_cumulative_wells())
-    #     # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-    #     observation = np.append(observation, self.field.get_holes())
-    #     # observation = np.append(observation, self.piece.id)
-    #     observation = np.append(observation, self.landing_height)
-    #     observation = np.append(observation, self.current_cleard_line)
-    #     observation = np.append(observation, self.field.get_row_transitions())
-
-    #     return observation
 
     def _calc_score(self) -> float | int:
         r = 0.0
@@ -233,16 +200,16 @@ class Game(Env):
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        r -= (max(self.field.get_column_heights()))
+        # r -= (max(self.field.get_column_heights()))
         # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
         # r -= self.field.get_holes() * 7
-        r -= self.field.get_holes()
-        r -= self.field.get_bumpiness()
+        # r -= self.field.get_holes()
+        # r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
-        r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line * 100)
+        # r -= self.field.get_deviation()
+        r += self.current_cleard_line ** 2 * 10
+        # r += (self.total_cleared_line * 100)
         # r += self.total_piece
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
@@ -360,4 +327,4 @@ class Game(Env):
 
 
 if __name__ == "__main__":
-    game = Game()
+    game = GameEnv()

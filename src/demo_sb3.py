@@ -2,9 +2,9 @@ import time
 
 from stable_baselines3 import DQN
 
-from game import Game
+from game import GameEnv
 
-env = Game(seed=1)
+env = GameEnv(seed=1)
 
 model = DQN.load("./save_weights_seven_256_past/rl_model_2000000_steps")
 

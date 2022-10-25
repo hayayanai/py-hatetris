@@ -6,7 +6,7 @@ from time import sleep
 from gym.spaces import Box
 
 from actions import ACTIONS
-from game import Game
+from game import GameEnv
 
 
 class Mode(Enum):
@@ -19,9 +19,9 @@ mode = Mode.REPLAY
 
 if (mode == Mode.REPLAY):
     from replay import replay, seed
-    game = Game(seed=seed, replay=replay)
+    game = GameEnv(seed=seed, replay=replay)
 else:
-    game = Game()
+    game = GameEnv()
 
 print(game.action_space)
 print(game.observation_space)
