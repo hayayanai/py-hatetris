@@ -12,12 +12,12 @@ from game import Game
 class Mode(Enum):
     MANUAL = 0
     RANDOM = 1
-    MAX_REPLAY = 2
+    REPLAY = 2
 
 
-mode = Mode.MAX_REPLAY
+mode = Mode.REPLAY
 
-if (mode == Mode.MAX_REPLAY):
+if (mode == Mode.REPLAY):
     from replay import replay, seed
     game = Game(seed=seed, replay=replay)
 else:
@@ -39,7 +39,7 @@ while not game.done:
         pprint(info)
         # pprint(game.field.get_column_heights())
         # print(game.field.get_holes())
-        # print(game.field.get_bumpiness())
+        print(game.field.get_cumulative_wells())
         game.render()
 
     elif mode == Mode.RANDOM:
@@ -51,7 +51,7 @@ while not game.done:
         print("obs:", obs)
         print("age", game.piece.age)
 
-    elif mode == Mode.MAX_REPLAY:
+    elif mode == Mode.REPLAY:
         obs, reward, _, info = game.step(action_index=None)
-        sleep(0.01)
+        sleep(0.1)
         game.render()

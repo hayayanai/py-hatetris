@@ -6,7 +6,7 @@ from game import Game
 
 env = Game(seed=1)
 
-model = DQN.load("./save_weights_seven2/rl_model_4000000_steps")
+model = DQN.load("./save_weights_seven_256_past/rl_model_2000000_steps")
 
 pieces = []
 lines = []

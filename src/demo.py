@@ -9,9 +9,9 @@ from rl.policy import BoltzmannQPolicy
 
 from game import Game
 
-NB_STEPS = 800000
+NB_STEPS = 300_0000
 
-DEVICE = "cpu"  # ["cpu", "gpu_limited", "gpu_unlimited"]
+DEVICE = "gpu_limited"  # ["cpu", "gpu_limited", "gpu_unlimited"]
 
 
 if (DEVICE == "cpu"):
@@ -29,15 +29,15 @@ nb_actions = env.action_space.n
 
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
-model.add(Dense(units=2**8, activation="relu"))
 model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**4, activation="relu"))
+model.add(Dense(units=2**6, activation="relu"))
+model.add(Dense(units=2**6, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
-model.load_weights("./moving_I")
+model.load_weights("moving_Seven.hdf5")
 
 memory = SequentialMemory(limit=50000, window_length=window_length)
 policy = BoltzmannQPolicy()
 agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True)
+                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, batch_size=128)
 agent.compile(adam_v2.Adam())
 agent.test(env, nb_episodes=10, visualize=True)

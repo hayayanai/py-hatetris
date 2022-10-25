@@ -18,7 +18,7 @@ print("torch.cuda.is_available():", is_available())
 # DEVICE = "cuda"  # ["cpu", "cuda", "auto"]
 seed = 20221015
 
-NOTIFICATION = False
+NOTIFICATION = True
 webhook_url = environ.get("WEBHOOK_URL")
 
 if webhook_url is None and NOTIFICATION:
@@ -60,11 +60,8 @@ def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, devic
 
 
 if __name__ == "__main__":
-    import argparse
-
-    # size = [(64, "cpu"), (128, "cpu"), (256, "cuda"), (512, "cuda")]
-    # steps = 6000000
-    parser = argparse.ArgumentParser(description="Train with Stable Baselines3")
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description="Train with Stable Baselines3")
     parser.add_argument("name", type=str, help="model name")
     parser.add_argument("batch_size", type=int, help="batch size")
     parser.add_argument("step", type=int, help="timesteps")

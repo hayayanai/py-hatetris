@@ -15,9 +15,9 @@ from rl.policy import BoltzmannQPolicy
 
 from game import Game
 
-NB_STEPS = 20000
+NB_STEPS = 300_0000
 
-DEVICE = "cpu"  # ["cpu", "gpu_limited", "gpu_unlimited"]
+DEVICE = "gpu_limited"  # ["cpu", "gpu_limited", "gpu_unlimited"]
 
 if (DEVICE == "cpu"):
     environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -38,9 +38,9 @@ nb_actions = env.action_space.n
 
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
+model.add(Dense(units=2**8, activation="relu"))
 model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
+model.add(Dense(units=2**4, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 # 経験値を蓄積するためのメモリ
 # 学習を安定させるために使用
@@ -54,7 +54,7 @@ policy = BoltzmannQPolicy()
 # DQN エージェントの作成
 # agent = SARSAAgent(model=model, nb_actions=nb_actions, nb_steps_warmup=10)
 agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, batch_size=32)
+                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, enable_dueling_network=False, batch_size=32)
 # DQNAgentのコンパイル
 # 最適化はAdam,評価関数はMAEを使用
 agent.compile(adam_v2.Adam())
@@ -64,7 +64,7 @@ time_start = time.time()
 
 history = agent.fit(env, nb_steps=NB_STEPS, visualize=False, verbose=1)
 # 学習した重みをファイルに保存
-agent.save_weights("moving_I2.hdf5", overwrite=True)
+agent.save_weights("moving_Seven.hdf5", overwrite=True)
 # model.save("model_IO")
 
 time_spent = time.time() - time_start

@@ -28,6 +28,7 @@ class Game(Env):
     frame_count: int
     total_piece: int
     total_cleared_line: int
+    landing_height: int
     # rng: int
     # VISIBLE_NEXT: int = 1
     # ACTION_MAP = np.array(["L", "R", "D", "U", "H"])
@@ -64,6 +65,7 @@ class Game(Env):
         self.total_piece = 0
         self.current_cleard_line = 0
         self.total_cleared_line = 0
+        self.landing_height = 0
         self.field = Well()
         self.enemy = EnemyAI(initial_seed=self.seed, field=self.field)
         self.piece = self.enemy.get_first_piece()
@@ -72,12 +74,13 @@ class Game(Env):
         self.done = False
         self.reset(regenerate)
 
-    def reset(self, regenerate: bool = False) -> np.ndarray:
+    def reset(self, regenerate: bool = True) -> np.ndarray:
         self.frame_count = 0
         self.score = 0.0
         self.total_piece = 0
         self.current_cleard_line = 0
         self.total_cleared_line = 0
+        self.landing_height = 0
         self.field = Well()
         if regenerate:
             self.seed = randint(0, 2**32 - 1)
@@ -90,15 +93,15 @@ class Game(Env):
 
         return self._get_observation()
 
-    def seed(self, seed: int = 111):
-        self.seed = seed
-        np.random.seed = seed
+    # def seed(self, seed: int):
+    #     self.seed = seed
+    #     np.random.seed = seed
 
     def step(self, action_index: int | None) -> tuple[np.ndarray, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
         og_score = self.score
         og_piece = self.piece
-        self.score = 0.0
+        # self.score = 0.0
         # is_gameover: bool = False
 
         action_player = self.ACTION_MAP[action_index]
@@ -120,6 +123,8 @@ class Game(Env):
 
         info = {
             # "frame_count": self.frame_count,
+            "c_trans": self.field.get_column_transitions(),
+            "r_trans": self.field.get_row_transitions(),
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line,
             "seed": self.seed,
@@ -131,15 +136,15 @@ class Game(Env):
     @property
     def OBSERVATION_SPACE(self):
         OBS_SPACE = Dict({
-            "Aggregate_Height": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-            "Bumpiness": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            # "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
+            # "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
             "Column_Height": Box(
                 low=np.zeros(Well.WIDTH),
                 high=np.full(Well.WIDTH, Well.DEPTH + 1),
                 dtype=np.uint8
             ),
-            "Column_Transitions": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-            "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
+            # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
             #     low=np.append(
             #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
@@ -147,10 +152,11 @@ class Game(Env):
             #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
             #     dtype=np.uint8
             # ),
-            "Holes": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
-            # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
-            "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
-            "Row_Transitions": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+            # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+            # "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
+            "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+            # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+            # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
         })
         return flatten_space(OBS_SPACE)
@@ -158,20 +164,68 @@ class Game(Env):
     def _get_observation(self, next_piece=None) -> np.ndarray:
         # observation = np.array(
         #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
-
-        # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-        observation = np.array(sum(self.field.get_column_heights()))
-        observation = np.append(observation, np.array(self.field.get_bumpiness()))
-        observation = np.append(observation, np.array(self.field.get_column_heights()))
-        observation = np.append(observation, self.field.get_column_transitions())
-        observation = np.append(observation, self.field.get_cumulative_wells())
+        observation = np.array(self.field.get_column_heights())
+        # observation = np.append(np.array(observation, np.array(self.field.get_cells_1d()))
+        # observation = np.array(sum(self.field.get_column_heights()))
+        # observation = np.append(observation, np.array(self.field.get_bumpiness()))
+        # observation = np.append(observation, np.array(self.field.get_column_heights()))
+        # observation = np.append(observation, self.field.get_column_transitions())
+        # observation = np.append(observation, self.field.get_cumulative_wells())
         # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-        observation = np.append(observation, self.field.get_holes())
-        # observation = np.append(observation, self.piece.id)
-        observation = np.append(observation, self.current_cleard_line)
-        observation = np.append(observation, self.field.get_row_transitions())
+        # observation = np.append(observation, self.field.get_holes())
+        observation = np.append(observation, self.piece.id)
+        # observation = np.append(observation, self.landing_height)
+        # observation = np.append(observation, self.current_cleard_line)
+        # observation = np.append(observation, self.field.get_row_transitions())
 
         return observation
+
+    # @property
+    # def OBSERVATION_SPACE(self):
+    #     OBS_SPACE = Dict({
+    #         "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
+    #         "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+    #         # "Column_Height": Box(
+    #         #     low=np.zeros(Well.WIDTH),
+    #         #     high=np.full(Well.WIDTH, Well.DEPTH + 1),
+    #         #     dtype=np.uint8
+    #         # ),
+    #         "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
+    #         "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
+    #         # "Field": Box(
+    #         #     low=np.append(
+    #         #         np.zeros(Well.WIDTH * Well.DEPTH - 1), 0),
+    #         #     high=np.append(
+    #         #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
+    #         #     dtype=np.uint8
+    #         # ),
+    #         "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+    #         "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
+    #         # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+    #         "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+    #         "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
+
+    #     })
+    #     return flatten_space(OBS_SPACE)
+
+    # def _get_observation(self, next_piece=None) -> np.ndarray:
+    #     # observation = np.array(
+    #     #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
+
+    #     # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+    #     observation = np.array(sum(self.field.get_column_heights()))
+    #     observation = np.append(observation, np.array(self.field.get_bumpiness()))
+    #     # observation = np.append(observation, np.array(self.field.get_column_heights()))
+    #     observation = np.append(observation, self.field.get_column_transitions())
+    #     observation = np.append(observation, self.field.get_cumulative_wells())
+    #     # observation = np.append(observation, np.array(self.field.get_cells_1d()))
+    #     observation = np.append(observation, self.field.get_holes())
+    #     # observation = np.append(observation, self.piece.id)
+    #     observation = np.append(observation, self.landing_height)
+    #     observation = np.append(observation, self.current_cleard_line)
+    #     observation = np.append(observation, self.field.get_row_transitions())
+
+    #     return observation
 
     def _calc_score(self) -> float | int:
         r = 0.0
@@ -179,27 +233,27 @@ class Game(Env):
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
         #                     np.array([self.piece.x, self.piece.y]))
-        # r -= (max(self.field.get_column_heights()))
+        r -= (max(self.field.get_column_heights()))
         # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
-        # r -= self.field.get_holes() * 3
-        # r -= self.field.get_holes() ** 2
-        # r -= self.field.get_bumpiness()
+        # r -= self.field.get_holes() * 7
+        r -= self.field.get_holes()
+        r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
-        # r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 100
-        # r += (self.total_cleared_line * 1000)
-        r += self.total_piece
+        r -= self.field.get_deviation()
+        r += self.current_cleard_line ** 2 * 3
+        r += (self.total_cleared_line * 100)
+        # r += self.total_piece
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
         if self.gameover:
-            self.score -= 10
+            self.score -= 500
             self.done = True
 
-        if self.total_cleared_line > 100:
-            self.score += 10000
-            self.done = True
+        # if self.total_cleared_line > 100:
+        #     self.score += 10000
+        #     self.done = True
 
         return r
 
@@ -249,16 +303,19 @@ class Game(Env):
         return move
 
     def _lock_piece(self) -> None:
+        mx = 0
         for y in range(4):
             for x in range(4):
                 if self.piece.get_char(x, y) == "#":
                     try:  # TODO: Refactor
                         self.field.cellses[3 - y + self.piece.y][x + self.piece.x].landed = True
+                        if mx < 3 - y + self.piece.y:
+                            mx = 3 - y + self.piece.y
                     except IndexError:
                         # print("Error:", y + self.piece.y)
                         # self.gameover = True
                         pass
-
+        self.landing_height = mx
         self.total_piece += 1
         self.current_cleard_line = self.field.delete_lines()
         self.total_cleared_line += self.current_cleard_line

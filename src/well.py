@@ -11,13 +11,15 @@ class Well:
     cellses: list[list[Cell]]
     DEPTH: int = 23
     WIDTH: int = 10
+    XS: list[int] = list(range(WIDTH))
+    YS: list[int] = list(range(DEPTH))
 
     def __init__(self) -> None:
         self.cellses: list[list[Cell]] = []
 
-        for y in range(0, Well.DEPTH):
+        for _ in Well.YS:
             cells = []
-            for x in range(0, Well.WIDTH):
+            for _ in Well.XS:
                 # landed = (well is not None) and (well[y] & (1 << x)) != 0
 
                 # live: bool
@@ -117,7 +119,7 @@ class Well:
         それぞれの列の一番上にあるブロックの高さ(int)
         """
         res = [0] * Well.WIDTH
-        for x in range(Well.WIDTH):
+        for x in Well.XS:
             for y in range(0, Well.DEPTH)[::-1]:
                 if (self.at(x, y).landed):
                     res[x] = y + 1
@@ -130,7 +132,7 @@ class Well:
         """
         count = 0
         for y in range(0, Well.DEPTH)[::-1]:
-            for x in range(0, Well.WIDTH):
+            for x in Well.XS:
                 if (not self.at(x, y).landed):
                     for yy in range(y + 1, Well.DEPTH):
                         if (self.at(x, yy).landed):
@@ -182,10 +184,10 @@ class Well:
     def get_row_transitions(self) -> int:
         """Returns the number of horizontal cell transitions."""
         total = 0
-        for y in range(Well.DEPTH):
+        for y in Well.YS:
             row_count = 0
             last_empty = False
-            for x in range(Well.WIDTH):
+            for x in Well.XS:
                 empty = self.at(x, y).landed is False
                 if last_empty != empty:
                     row_count += 1
@@ -203,7 +205,7 @@ class Well:
     def get_column_transitions(self) -> int:
         """Returns the number of vertical cell transitions."""
         total = 0
-        for x in range(Well.WIDTH):
+        for x in Well.XS:
             column_count = 0
             last_empty = False
             for y in reversed(range(Well.DEPTH)):
@@ -220,7 +222,7 @@ class Well:
 
     def get_cumulative_wells(self):
         """Returns the sum of all wells."""
-        wells = [0 for _ in range(Well.WIDTH)]
+        wells = [0] * Well.WIDTH
         for y, row in enumerate(self.cellses):
             left_empty = True
             for x, code in enumerate(row):
