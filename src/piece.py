@@ -202,6 +202,9 @@ class Piece():
     def __str__(self) -> str:
         return f"{self.id}{self.name}, x:{self.x}, y:{self.y}, rot:{self.rot}"
 
+    def __deepcopy__(self, memo):
+        return Piece(self.id)
+
     @property
     def name(self) -> str:
         """id: int -> key: str

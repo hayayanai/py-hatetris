@@ -1,5 +1,7 @@
+from functools import lru_cache
 import time
 from collections import deque
+from copy import deepcopy
 from random import randint
 from typing import Literal
 
@@ -14,6 +16,7 @@ from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
 from piece import Piece
+from watch import watch
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
@@ -100,7 +103,7 @@ class GameEnv(Env):
     def step(self, action_index: int | None) -> tuple[np.ndarray, float, bool, dict]:
         next_frame_count: int = self.frame_count + 1
         og_score = self.score
-        og_piece = self.piece
+        # og_piece = self.piece
         # self.score = 0.0
         # is_gameover: bool = False
 
@@ -112,19 +115,26 @@ class GameEnv(Env):
                 self.replay.append(action_player)
             self._handle_input(action_player)
 
-        observation = self._get_observation(og_piece)
+        observation = self._get_observation()
 
         self.score = self._calc_score()
 
         self.frame_count = next_frame_count
-        self.piece.age += 1
-
+        # self.piece.age += 1
+        if self.gameover:
+            self.score -= 500
+            self.done = True
         reward = self.score - og_score
+        # reward = self.score
+
+        # if self.gameover:
+        #     reward -= 500
+        #     self.done = True
 
         info = {
             # "frame_count": self.frame_count,
-            "c_trans": self.field.get_column_transitions(),
-            "r_trans": self.field.get_row_transitions(),
+            # "c_trans": self.field.get_column_transitions(),
+            # "r_trans": self.field.get_row_transitions(),
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line,
             "seed": self.seed,
@@ -144,8 +154,9 @@ class GameEnv(Env):
             (Well.WIDTH - 1) * Well.DEPTH,
             23,
             4,
-            180] * len(self.ACTION_MAP)
-        print(np.array(mx_list))
+            180
+        ] * len(self.ACTION_MAP)
+        # print(np.array(mx_list))
         OBS_SPACE = Box(low=np.zeros(len(mx_list)),
                         high=np.array(mx_list),
                         dtype=np.uint8)
@@ -175,27 +186,127 @@ class GameEnv(Env):
         # })
         return flatten_space(OBS_SPACE)
 
+    # @watch
     def _get_observation(self, next_piece=None) -> np.ndarray:
-        # observation = np.array(
-        #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
+        # @watch
+        def handle_input(field: Well, action: str, piece: Piece) -> Well:
+            pre_x = piece.x
+            pre_y = piece.y
+            pre_rot = piece.rot
+            if len(action) == 1:
+                if (action == "D"):
+                    piece.y -= 1
+                elif (action == "L"):
+                    piece.x -= 1
+                elif (action == "R"):
+                    piece.x += 1
+                elif (action == "U"):
+                    piece.rot = (piece.rot + 1) % 4
+                elif (action == "H"):
+                    while piece.id != -1:
+                        handle_input(field=field, action="D", piece=piece)
 
-        # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
-        observation = np.array(sum(self.field.get_column_heights()))
-        observation = np.append(observation, np.array(self.field.get_bumpiness()))
-        # observation = np.append(observation, np.array(self.field.get_column_heights()))
-        observation = np.append(observation, self.field.get_column_transitions())
-        observation = np.append(observation, self.field.get_cumulative_wells())
-        # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-        observation = np.append(observation, self.field.get_holes())
-        # observation = np.append(observation, self.piece.id)
-        observation = np.append(observation, self.landing_height)
-        observation = np.append(observation, self.current_cleard_line)
-        observation = np.append(observation, self.field.get_row_transitions())
+                if not is_piece_movable(piece, field):  # 動かせないなら元に戻す
+                    piece.x = pre_x
+                    piece.rot = pre_rot
+                    if (piece.y != pre_y and piece.id != -1):
+                        piece.y = pre_y
+                        lock_piece(piece, field)
+            else:
+                handle_input(field=field, action=action[0], piece=piece)
+                handle_input(field=field, action=action[1:], piece=piece)
 
-        return observation
+        # @watch
+        # @lru_cache(maxsize=None)
+        def is_piece_movable(piece: Piece, field: Well) -> bool:
+            move = True
+            for y in range(4):
+                for x in range(4):
+                    if piece.get_char(x, y) == "#":
+                        try:
+                            if (field.at(x + piece.x, 3 - y + piece.y).landed):
+                                move = False
+                        except IndexError:
+                            move = False
+            return move
 
+        # @watch
+        def lock_piece(piece: Piece, field: Well) -> Well:
+            mx = 0
+            for y in range(4):
+                for x in range(4):
+                    if piece.get_char(x, y) == "#":
+                        try:  # TODO: Refactor
+                            field.cellses[3 - y + piece.y][x + piece.x].landed = True
+                            if mx < 3 - y + piece.y:
+                                mx = 3 - y + piece.y
+                        except IndexError:
+                            pass
+            lines = field.delete_lines()
+            landing_height = mx
+            piece.age = -lines
+            piece.y = landing_height * 100
+            piece.id = -1
+
+        # @watch
+        # @lru_cache(maxsize=None)
+        def put_block(field: Well, action: str, piece: Piece) -> tuple[Well, int, int]:
+            handle_input(field, action, piece)
+            return (field, piece.y // 100, abs(piece.age))
+
+        def get_states(field: Well, landing_height: int, current_cleared_line: int) -> list[int]:
+            return np.array([
+                sum(field.get_column_heights()),
+                field.get_bumpiness(),
+                field.get_column_transitions(),
+                field.get_cumulative_wells(),
+                field.get_holes(),
+                landing_height,
+                current_cleared_line,
+                field.get_row_transitions()
+            ])
+
+        # @watch
+        def get_possible_state() -> list[list[int]]:
+            states = np.array([], dtype=np.uint8)
+            for action in ACTIONS:
+                future_field = deepcopy(self.field)
+                now_piece = deepcopy(self.piece)
+                # ブロックを置く
+                future_field, landing_height, cleared_line = put_block(future_field, action, now_piece)
+                states = np.append(states, get_states(future_field, landing_height, cleared_line))
+            return states
+        # from pprint import pprint
+        # pprint(states)
+        # # observation = np.array(
+        # #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
+
+        # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
+        # observation = np.array(sum(self.field.get_column_heights()))
+        # observation = np.append(observation, np.array(self.field.get_bumpiness()))
+        # # observation = np.append(observation, np.array(self.field.get_column_heights()))
+        # observation = np.append(observation, self.field.get_column_transitions())
+        # observation = np.append(observation, self.field.get_cumulative_wells())
+        # # observation = np.append(observation, np.array(self.field.get_cells_1d()))
+        # observation = np.append(observation, self.field.get_holes())
+        # # observation = np.append(observation, self.piece.id)
+        # observation = np.append(observation, self.landing_height)
+        # observation = np.append(observation, self.current_cleard_line)
+        # observation = np.append(observation, self.field.get_row_transitions())
+
+        return get_possible_state()
+
+    # @lru_cache(maxsize=None)
     def _calc_score(self) -> float | int:
-        r = 0.0
+        r = 1
+        if self.current_cleard_line == 1:
+            r += 40
+        elif self.current_cleard_line == 2:
+            r += 100
+        elif self.current_cleard_line == 3:
+            r += 300
+        elif self.current_cleard_line == 4:
+            r += 1200
         # r += (22 - self.piece.y)
         # r += (abs(self.piece.x - 3)) * 2
         # r += np.linalg.norm(np.array([3, 19]) -
@@ -204,20 +315,16 @@ class GameEnv(Env):
         # r -= (sum(self.field.get_column_heights()))
         # r += (self.piece.rot % 2) * 2
         # r -= self.field.get_holes() * 7
-        # r -= self.field.get_holes()
-        # r -= self.field.get_bumpiness()
+        r -= self.field.get_holes()
+        r -= self.field.get_bumpiness()
         # r -= self.field.get_bumpiness() ** 2
         # r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 10
-        # r += (self.total_cleared_line * 100)
+        # r += self.current_cleard_line ** 2 * 10
+        r += (self.total_cleared_line * 100)
         # r += self.total_piece
         # if (self.piece.y == self.piece_pos_y):
         #     r -= 1
         # print("r", r)
-        if self.gameover:
-            self.score -= 500
-            self.done = True
-
         # if self.total_cleared_line > 100:
         #     self.score += 10000
         #     self.done = True
@@ -254,6 +361,7 @@ class GameEnv(Env):
                 self._lock_piece()
                 # self.score += 10
 
+    # @lru_cache(maxsize=None)
     def _is_piece_movable(self) -> bool:
         move = True
         for y in range(4):

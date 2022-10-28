@@ -220,7 +220,7 @@ class Well:
             total += column_count
         return total
 
-    def get_cumulative_wells(self):
+    def get_cumulative_wells(self) -> int:
         """Returns the sum of all wells."""
         wells = [0] * Well.WIDTH
         r_cellses = list(reversed(self.cellses))
@@ -238,7 +238,7 @@ class Well:
                     left_empty = False
         return sum(wells)
 
-    def render_wells(self):
+    def render_wells(self) -> None:
         for y in range(0, Well.DEPTH)[::-1]:
             for x in range(0, Well.WIDTH):
                 if (self.cellses[y][x].landed):
