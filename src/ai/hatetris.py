@@ -15,7 +15,6 @@ class HatetrisAi(EnemyAi):
     def __init__(self, field: Well, initial_seed: None = None) -> None:
         super().__init__(field=field)
         self.piece = self.get_first_piece()
-        self.reflesh_piece = False
 
     def get_first_piece(self) -> Piece:
         return Piece(Mino.S)
@@ -35,7 +34,6 @@ class HatetrisAi(EnemyAi):
                     continue
                 future_field = deepcopy(self.field)
                 # ブロックを置く
-                self.reflesh_piece = False
                 future_field = self._put_block(future_field, action, pid)
                 rating = self._evaluate(future_field)  # 最良（盤面の高さが低い）置き方をスコアとする。
                 if ratings[pid] > rating:  # 小さかったら辞書を更新
@@ -87,18 +85,19 @@ class HatetrisAi(EnemyAi):
             elif (action == "U"):
                 piece.rot = (piece.rot + 1) % 4
             elif (action == "H"):
-                while not self.reflesh_piece:
+                while piece.id != -1:
                     self._handle_input(field=field, action="D", piece=piece)
+
+            if not self._is_piece_movable(piece, field):  # 動かせないなら元に戻す
+                piece.x = pre_x
+                piece.rot = pre_rot
+                if (piece.y != pre_y):
+                    piece.y = pre_y
+                    field = self._lock_piece(piece, field)
         else:
             self._handle_input(field=field, action=action[0], piece=piece)
             self._handle_input(field=field, action=action[1:], piece=piece)
 
-        if not self._is_piece_movable(piece, field):  # 動かせないなら元に戻す
-            piece.x = pre_x
-            piece.rot = pre_rot
-            if (piece.y != pre_y):
-                piece.y = pre_y
-                field = self._lock_piece(piece, field)
         return field
 
     def _is_piece_movable(self, piece: Piece, field: Well) -> bool:
@@ -122,11 +121,11 @@ class HatetrisAi(EnemyAi):
                     except IndexError:
                         pass
         _ = field.delete_lines()
-        self.reflesh_piece = True
+        piece.id = -1
         return field
 
 
 if __name__ == "__main__":
     field = Well()
-    ai = HatetrisAi(0, field)
+    ai = HatetrisAi(field)
     print(ai.get_next_piece())
