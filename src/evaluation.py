@@ -1,6 +1,6 @@
 from stable_baselines3 import DQN
 
-from game import Game
+from game import GameEnv
 
 
 def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -> tuple:
@@ -16,7 +16,7 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
         tuple: (sum(lines) / len(lines), max_lines)
     """
 
-    env = Game(save_replay=True)
+    env = GameEnv(save_replay=True)
     model = DQN.load(f"./{model_name}/rl_model_{step}_steps")
 
     pieces = []

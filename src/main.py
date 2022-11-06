@@ -6,7 +6,7 @@ from time import sleep
 from gym.spaces import Box
 
 from actions import ACTIONS
-from game import Game
+from game import GameEnv
 
 
 class Mode(Enum):
@@ -19,27 +19,29 @@ mode = Mode.REPLAY
 
 if (mode == Mode.REPLAY):
     from replay import replay, seed
-    game = Game(seed=seed, replay=replay)
+    game = GameEnv(seed=seed, replay=replay)
 else:
-    game = Game()
+    game = GameEnv(seed=1)
 
-print(game.action_space)
-print(game.observation_space)
-print(game.observation_space.sample())
+# print(game.action_space)
+# print(game.observation_space)
+# print(game.observation_space.sample())
 space = game.observation_space
 if isinstance(space, Box):
-    print('    最小値: ', space.low)
-    print('    最大値: ', space.high)
+    # print('    最小値: ', space.low)
+    # print('    最大値: ', space.high)
+    pass
 
 while not game.done:
 
     if mode == Mode.MANUAL:
         obs, reward, _, info = game.step(action_index=int(input()))
-        print("reward:", reward)
-        pprint(info)
+        # print("reward:", reward)
+        # pprint(info)
+        # pprint(obs)
         # pprint(game.field.get_column_heights())
         # print(game.field.get_holes())
-        print(game.field.get_cumulative_wells())
+        # print(game.field.get_cumulative_wells())
         game.render()
 
     elif mode == Mode.RANDOM:

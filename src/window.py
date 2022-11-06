@@ -1,6 +1,6 @@
 from tkinter import Canvas, Tk
 
-from game import Game
+from game import GameEnv
 from well import Well
 
 SIZE = 25
@@ -10,9 +10,9 @@ HEIGHT = Well.DEPTH * SIZE
 
 
 class RenderWindow(Tk):
-    def __init__(self, env: Game) -> None:
+    def __init__(self, env: GameEnv) -> None:
         super().__init__()
-        self.game: Game = env
+        self.game: GameEnv = env
         self.render_offset = 5
         self.geometry("%dx%d" % (
             WIDTH + self.render_offset * 2,

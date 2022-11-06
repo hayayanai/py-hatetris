@@ -7,7 +7,7 @@ from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 
-from game import Game
+from game import GameEnv
 
 NB_STEPS = 300_0000
 
@@ -21,7 +21,7 @@ elif (DEVICE == "gpu_limited"):
 elif (DEVICE == "gpu_unlimited"):
     pass
 
-env = Game()
+env = GameEnv()
 window_length = 1
 input_shape = (window_length,) + (env.observation_space.shape)
 print(input_shape)
@@ -29,9 +29,9 @@ nb_actions = env.action_space.n
 
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
+# model.add(Dense(units=2**6, activation="relu"))
 model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
+model.add(Dense(units=2**4, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 model.load_weights("moving_Seven.hdf5")
 
