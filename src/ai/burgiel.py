@@ -20,12 +20,13 @@
 # */
 
 from piece import Mino, Piece
+from well import Well
 
 from ai.enemy import EnemyAi
 
 
 class Burgiel(EnemyAi):
-    def __init__(self) -> None:
+    def __init__(self, field: Well, initial_seed: None = None) -> None:
         super().__init__()
         self.current_piece: Mino = Mino.S
 

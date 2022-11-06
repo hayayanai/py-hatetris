@@ -28,7 +28,7 @@ if webhook_url is None and NOTIFICATION:
 
 def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, device: str = "cuda"):
     env = GameEnv()
-    model = DQN("MlpPolicy", env, verbose=0, tensorboard_log="log", device=device, batch_size=batch_size)
+    model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="log", device=device, batch_size=batch_size)
 
     print("START!")
     print(model_name, batch_size, timesteps, device)

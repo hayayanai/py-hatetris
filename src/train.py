@@ -9,13 +9,13 @@ from keras.models import Sequential
 from keras.optimizers import adam_v2
 from matplotlib import pyplot as plt
 from rl.agents.dqn import DQNAgent
-# from rl.agents.sarsa import SARSAAgent
+from rl.agents.sarsa import SARSAAgent
 from rl.memory import SequentialMemory
 from rl.policy import BoltzmannQPolicy
 
 from game import GameEnv
 
-NB_STEPS = 300_0000
+NB_STEPS = 200_0000
 
 DEVICE = "gpu_limited"  # ["cpu", "gpu_limited", "gpu_unlimited"]
 
@@ -30,7 +30,7 @@ elif (DEVICE == "gpu_unlimited"):
 env = GameEnv()
 window_length = 1
 # print(flatten_space((env.observation_space)).shape)
-input_shape = (1,) + (env.observation_space.shape)
+input_shape = (window_length,) + (env.observation_space.shape)
 # print(input_shape)
 
 # input_shape = (1,) + env.observation_space.shape
@@ -38,7 +38,7 @@ nb_actions = env.action_space.n
 
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
-model.add(Dense(units=2**8, activation="relu"))
+# model.add(Dense(units=2**8, activation="relu"))
 model.add(Dense(units=2**6, activation="relu"))
 model.add(Dense(units=2**4, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
@@ -52,10 +52,12 @@ memory = SequentialMemory(limit=50000, window_length=window_length)
 policy = BoltzmannQPolicy()
 
 # DQN エージェントの作成
-# agent = SARSAAgent(model=model, nb_actions=nb_actions, nb_steps_warmup=10)
-agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
-                 nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, enable_dueling_network=False, batch_size=32)
+agent = SARSAAgent(model=model, nb_actions=nb_actions, nb_steps_warmup=10)
+# agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory,
+#                  nb_steps_warmup=10, target_model_update=1e-2, policy=policy, enable_double_dqn=True, enable_dueling_network=False, batch_size=32)
 # DQNAgentのコンパイル
+
+
 # 最適化はAdam,評価関数はMAEを使用
 agent.compile(adam_v2.Adam())
 

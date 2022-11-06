@@ -29,9 +29,9 @@ nb_actions = env.action_space.n
 
 model = Sequential()
 model.add(Flatten(input_shape=input_shape))
+# model.add(Dense(units=2**6, activation="relu"))
 model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
-model.add(Dense(units=2**6, activation="relu"))
+model.add(Dense(units=2**4, activation="relu"))
 model.add(Dense(units=nb_actions, activation="linear"))
 model.load_weights("moving_Seven.hdf5")
 

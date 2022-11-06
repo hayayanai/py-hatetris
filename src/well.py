@@ -131,13 +131,15 @@ class Well:
         空白のうち、上方向に1つでもブロックが存在する穴の個数(int)
         """
         count = 0
-        for y in range(0, Well.DEPTH)[::-1]:
-            for x in Well.XS:
-                if (not self.at(x, y).landed):
-                    for yy in range(y + 1, Well.DEPTH):
-                        if (self.at(x, yy).landed):
-                            count += 1
-                            break
+        r_cellses = list(reversed(self.cellses))
+        for x in Well.XS:
+            below = False
+            for y in Well.YS:
+                empty = r_cellses[y][x].landed is False
+                if not below and not empty:
+                    below = True
+                elif below and empty:
+                    count += 1
         return count
 
     def get_enclosed_holes(self) -> int:
