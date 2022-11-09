@@ -20,18 +20,6 @@ class Well:
         for _ in Well.YS:
             cells = []
             for _ in Well.XS:
-                # landed = (well is not None) and (well[y] & (1 << x)) != 0
-
-                # live: bool
-                # if (piece is None):
-                #     live = False
-                # else:
-                #     orientation: Orientation = rotationSystem.rotations[piece.id][piece.o]
-                #     y2 = y - piece.y - orientation.yMin
-                #     x2 = x - piece.x - orientation.xMin
-                #     live = (y2 >= 0 and y2 < orientation.yDim and x2 >= 0 and x2 <
-                #             orientation.xDim and (orientation.rows[y2] & (1 << x2)) != 0)
-
                 cells.append(Cell(landed=False))
             self.cellses.append(cells)
 
@@ -125,6 +113,21 @@ class Well:
                     res[x] = y + 1
                     break
         return res
+
+    def get_heights_diff(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            ans[x] = abs(lis[x] - lis[x + 1])
+        return ans
+
+    def get_heights_diff_limit(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            val = abs(lis[x] - lis[x + 1])
+            ans[x] = val if val <= 3 else 3
+        return ans
 
     def get_holes(self) -> int:
         """
