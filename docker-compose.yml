@@ -3,7 +3,14 @@ services:
   python3:
     build: .
     container_name: 'yanai3.10'
-    working_dir: '/root/app'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    working_dir: '/root/workspace'
     tty: true
     volumes:
-      - .:/root/app
+      - .:/root/workspace
