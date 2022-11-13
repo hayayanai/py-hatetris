@@ -2,8 +2,6 @@
 #include "hate.hpp"
 #include <iostream>
 #include <map>
-#include <iterator>
-#include <algorithm>
 #include <string>
 
 std::string Piece::getName()
@@ -209,7 +207,8 @@ void Hatetris::lockPiece(std::vector<std::vector<int>> &field, Piece &piece)
             }
         }
     }
-    int l = deleteLines(field);
+    // int l = deleteLines(field);
+    deleteLines(field);
     piece.id = -1;
 }
 

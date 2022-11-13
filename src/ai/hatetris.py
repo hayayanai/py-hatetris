@@ -6,7 +6,7 @@ from well import Well
 
 from ai.enemy import EnemyAi
 
-import hate
+from hate import Hate
 
 class HatetrisAi(EnemyAi):
     # 'SZOILJT'
@@ -15,7 +15,7 @@ class HatetrisAi(EnemyAi):
 
     def __init__(self, field: Well, initial_seed: None = None) -> None:
         super().__init__(field=field)
-        self.hate = hate.Hate(field.get_cells_2d())
+        self.hate = Hate(field.get_cells_2d())
         self.piece = self.get_first_piece()
 
     def get_first_piece(self) -> Piece:
@@ -25,9 +25,9 @@ class HatetrisAi(EnemyAi):
     @watch
     def get_next_piece(self) -> Piece:
         # next_piece = self._get_hatetris()
-        return self._get_hatetris()
+        # return self._get_hatetris()
         # next_piece_id =
-        return Piece(self.hate.getNextPiece())
+        # return Piece(self.hate.get_next_piece())
 
     def _get_hatetris(self) -> Piece:
         ratings = {}
@@ -166,8 +166,8 @@ if __name__ == "__main__":
     for y in range(len(board_blueprint)):
         for x in range(Well.WIDTH):
             lis[y][x] = 1 if board_blueprint[y][x] == "#" else 0
-    h = hate.Hate(lis)
-    p = hate.Blocks()
+    h = Hate(lis)
+    # p = Blocks()
     # print(h.getFirstPiece())
     # print(h.getNextPiece())
     # h.print()
