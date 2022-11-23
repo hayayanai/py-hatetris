@@ -1,3 +1,17 @@
+action3 = [
+    "LLLLH",
+    "LLLH",
+    "LLH",
+    "LH",
+    "H",
+    "ULLLLLH",
+    "ULLLLH",
+    "ULLLH",
+    "ULLH",
+    "ULH",
+    "UH",
+]
+
 action2 = [
     # "D",
     "LLLLH",

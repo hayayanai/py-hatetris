@@ -18,7 +18,7 @@ from piece import Mino, Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
-EnemyAI = SevenAi
+EnemyAI = HatetrisAi
 
 
 class GameEnv(Env):
@@ -150,11 +150,21 @@ class GameEnv(Env):
             #     high=np.full(Well.WIDTH, Well.DEPTH + 1),
             #     dtype=np.uint8
             # ),
-            "Column_Height_Diff": Box(
-                low=np.zeros(Well.WIDTH - 1),
+            # "Column_Height_Diff": Box(
+            #     low=np.zeros(Well.WIDTH - 1),
+            #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
+            #     dtype=np.uint8
+            # ),
+            "Column_Height_Diff_Minus": Box(
+                low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
                 high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
-                dtype=np.uint8
+                dtype=np.int8
             ),
+            # "Column_Height_Diff_Limit": Box(
+            #     low=np.full(Well.WIDTH - 1, -3),
+            #     high=np.full(Well.WIDTH - 1, 3),
+            #     dtype=np.int8
+            # ),
             # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
             # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
@@ -177,7 +187,8 @@ class GameEnv(Env):
     def _get_observation(self) -> np.ndarray:
 
         # observation = np.array(self.field.get_column_heights())
-        observation = np.array(self.field.get_heights_diff())
+        observation = np.array(self.field.get_heights_diff_minus())
+        # observation = np.array(self.field.get_heights_diff_limit())
         # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         # observation = np.array(sum(self.field.get_column_heights()))
         # observation = np.append(observation, np.array(self.field.get_bumpiness()))

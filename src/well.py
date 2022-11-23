@@ -25,12 +25,22 @@ class Well:
 
     def __deepcopy__(self, memo):
         well = Well()
-        cellses = []
-        for y in range(0, Well.DEPTH):
+        well.cellses = []
+        for y in range(Well.DEPTH):
             cells = []
-            for x in range(0, Well.WIDTH):
+            for x in range(Well.WIDTH):
                 cells.append(Cell(landed=self.at(x, y).landed))
-            cellses.append(cells)
+            well.cellses.append(cells)
+        return well
+
+    def cp(self):
+        well = Well()
+        well.cellses = []
+        for y in range(Well.DEPTH):
+            cells = []
+            for x in range(Well.WIDTH):
+                cells.append(Cell(landed=self.at(x, y).landed))
+            well.cellses.append(cells)
         return well
 
     def at(self, x: int, y: int) -> Cell:
@@ -121,12 +131,24 @@ class Well:
             ans[x] = abs(lis[x] - lis[x + 1])
         return ans
 
+    def get_heights_diff_minus(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            ans[x] = lis[x] - lis[x + 1]
+        return ans
+
     def get_heights_diff_limit(self) -> list[int]:
         lis = self.get_column_heights()
         ans = [0] * (Well.WIDTH - 1)
         for x in range(Well.WIDTH - 1):
-            val = abs(lis[x] - lis[x + 1])
-            ans[x] = val if val <= 3 else 3
+            val = lis[x] - lis[x + 1]
+            if val > 3:
+                ans[x] = 3
+            elif val < -3:
+                ans[x] = -3
+            else:
+                ans[x] = val
         return ans
 
     def get_holes(self) -> int:

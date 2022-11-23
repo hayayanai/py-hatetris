@@ -37,7 +37,7 @@ def train(model_name: str, batch_size: int, timesteps: int, device: str = "cuda"
     print(model_name, batch_size, timesteps, device)
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
-        save_freq=timesteps // 40, save_path=f"{model_name}/")
+        save_freq=timesteps // 100, save_path=f"{model_name}/")
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 

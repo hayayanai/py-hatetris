@@ -83,7 +83,8 @@ private:
         "UUURRH",
         "UUURRRH",
         "UUURRRRH",
-        "UUURRRRRH"};
+        "UUURRRRRH"
+        };
 
     const int DEPTH = 23;
     const int WIDTH = 10;

@@ -1,12 +1,10 @@
-from copy import deepcopy
+from hate import Hate
 
 from actions import ACTIONS
+from ai.enemy import EnemyAi
 from piece import Mino, Piece
 from well import Well
 
-from ai.enemy import EnemyAi
-
-from hate import Hate
 
 class HatetrisAi(EnemyAi):
     # 'SZOILJT'
@@ -21,13 +19,14 @@ class HatetrisAi(EnemyAi):
     def get_first_piece(self) -> Piece:
         return Piece(Mino.S)
 
-    from watch import watch
-    @watch
+    # from watch import watch
+    # @watch
     def get_next_piece(self) -> Piece:
         # next_piece = self._get_hatetris()
         # return self._get_hatetris()
         # next_piece_id =
-        # return Piece(self.hate.get_next_piece())
+        self.hate = Hate(self.field.get_cells_2d())
+        return Piece(self.hate.get_next_piece())
 
     def _get_hatetris(self) -> Piece:
         ratings = {}
@@ -38,7 +37,7 @@ class HatetrisAi(EnemyAi):
             for action in ACTIONS:
                 if not action.endswith("H"):
                     continue
-                future_field = deepcopy(self.field)
+                future_field = self.field.cp()
                 # ブロックを置く
                 future_field = self._put_block(future_field, action, pid)
                 # 最良（盤面の高さが低い）置き方をスコアとする。
@@ -133,9 +132,6 @@ class HatetrisAi(EnemyAi):
 
 
 if __name__ == "__main__":
-    field = Well()
-    ai = HatetrisAi(field)
-    print(ai.get_next_piece())
     board_blueprint = [
         "          ",
         "          ",
@@ -161,12 +157,19 @@ if __name__ == "__main__":
         " #########",
         " #########",
     ]
+    field = Well()
     lis = [[None] * Well.WIDTH for _ in range(Well.DEPTH)]
     board_blueprint.reverse()
     for y in range(len(board_blueprint)):
         for x in range(Well.WIDTH):
             lis[y][x] = 1 if board_blueprint[y][x] == "#" else 0
+            field.at(x, y).landed = True if board_blueprint[y][x] == "#" else False
+    field.render_wells()
     h = Hate(lis)
+    ai = HatetrisAi(field)
+
+    # print("cpp:", h.get_next_piece())
+    print("py:", ai._get_hatetris())
     # p = Blocks()
     # print(h.getFirstPiece())
     # print(h.getNextPiece())
