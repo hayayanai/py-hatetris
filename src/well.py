@@ -20,29 +20,27 @@ class Well:
         for _ in Well.YS:
             cells = []
             for _ in Well.XS:
-                # landed = (well is not None) and (well[y] & (1 << x)) != 0
-
-                # live: bool
-                # if (piece is None):
-                #     live = False
-                # else:
-                #     orientation: Orientation = rotationSystem.rotations[piece.id][piece.o]
-                #     y2 = y - piece.y - orientation.yMin
-                #     x2 = x - piece.x - orientation.xMin
-                #     live = (y2 >= 0 and y2 < orientation.yDim and x2 >= 0 and x2 <
-                #             orientation.xDim and (orientation.rows[y2] & (1 << x2)) != 0)
-
                 cells.append(Cell(landed=False))
             self.cellses.append(cells)
 
     def __deepcopy__(self, memo):
         well = Well()
-        cellses = []
-        for y in range(0, Well.DEPTH):
+        well.cellses = []
+        for y in range(Well.DEPTH):
             cells = []
-            for x in range(0, Well.WIDTH):
+            for x in range(Well.WIDTH):
                 cells.append(Cell(landed=self.at(x, y).landed))
-            cellses.append(cells)
+            well.cellses.append(cells)
+        return well
+
+    def cp(self):
+        well = Well()
+        well.cellses = []
+        for y in range(Well.DEPTH):
+            cells = []
+            for x in range(Well.WIDTH):
+                cells.append(Cell(landed=self.at(x, y).landed))
+            well.cellses.append(cells)
         return well
 
     def at(self, x: int, y: int) -> Cell:
@@ -126,6 +124,36 @@ class Well:
                     break
         return res
 
+    def get_average_height(self) -> int | float:
+        return sum(self.get_column_heights()) / Well.WIDTH
+
+    def get_heights_diff(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            ans[x] = abs(lis[x] - lis[x + 1])
+        return ans
+
+    def get_heights_diff_minus(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            ans[x] = lis[x] - lis[x + 1]
+        return ans
+
+    def get_heights_diff_limit(self) -> list[int]:
+        lis = self.get_column_heights()
+        ans = [0] * (Well.WIDTH - 1)
+        for x in range(Well.WIDTH - 1):
+            val = lis[x] - lis[x + 1]
+            if val > 3:
+                ans[x] = 3
+            elif val < -3:
+                ans[x] = -3
+            else:
+                ans[x] = val
+        return ans
+
     def get_holes(self) -> int:
         """
         空白のうち、上方向に1つでもブロックが存在する穴の個数(int)
@@ -170,6 +198,18 @@ class Well:
         lis = self.get_column_heights()
         for x in range(Well.WIDTH - 1):
             v += abs(lis[x] - lis[x + 1])
+        return v
+
+    def get_bumpiness_2d(self) -> int:
+        """Summing the squared values of the differences of neighboring columns.
+
+        Returns:
+            int: the sum
+        """
+        v = 0
+        lis = self.get_column_heights()
+        for x in range(Well.WIDTH - 1):
+            v += ((lis[x] - lis[x + 1]) ** 2)
         return v
 
     def get_deviation(self) -> int | float:

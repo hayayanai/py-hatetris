@@ -105,6 +105,32 @@ class TestWell:
         lis = field_heights.get_column_heights()
         assert lis[x] == expected
 
+    @pytest.mark.parametrize(
+        "x, expected",
+        [
+            (0, 0),
+            (1, 4),
+            (2, 2),
+            (3, 2),
+        ]
+    )
+    def test_get_heights_diff(self, field_heights: Well, x, expected):
+        lis = field_heights.get_heights_diff()
+        assert lis[x] == expected
+
+    @pytest.mark.parametrize(
+        "x, expected",
+        [
+            (0, 0),
+            (1, 3),
+            (2, 2),
+            (3, 2),
+        ]
+    )
+    def test_get_heights_diff_limit(self, field_heights: Well, x, expected):
+        lis = field_heights.get_heights_diff_limit()
+        assert lis[x] == expected
+
     def test_get_holes(self, field_heights: Well):
         assert field_heights.get_holes() == 1
 

@@ -1,15 +1,18 @@
 import datetime
 import json
 import time
-from os import environ
+from os import getenv
 
 import requests
+from dotenv import load_dotenv
 from stable_baselines3 import DQN
 from stable_baselines3.common.callbacks import CheckpointCallback
 from torch.cuda import is_available
 
 from evaluation import evaluate
 from game import GameEnv
+
+load_dotenv(override=True)
 
 print("torch.cuda.is_available():", is_available())
 
@@ -19,14 +22,14 @@ print("torch.cuda.is_available():", is_available())
 seed = 20221015
 
 NOTIFICATION = True
-webhook_url = environ.get("WEBHOOK_URL")
+webhook_url = getenv("WEBHOOK_URL")
 
 if webhook_url is None and NOTIFICATION:
     print("webhook_url is None")
     exit()
 
 
-def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, device: str = "cuda"):
+def train(model_name: str, batch_size: int, timesteps: int, device: str = "cuda"):
     env = GameEnv()
     model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="log", device=device, batch_size=batch_size)
 
@@ -34,7 +37,7 @@ def train(model_name: str, batch_size: int = 64, timesteps: int = 8000000, devic
     print(model_name, batch_size, timesteps, device)
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
-        save_freq=timesteps // 40, save_path=f"{model_name}/")
+        save_freq=timesteps // 100, save_path=f"{model_name}/")
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 

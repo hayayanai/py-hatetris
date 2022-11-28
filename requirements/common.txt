@@ -2,4 +2,5 @@
 matplotlib==3.5.3
 stable-baselines3>=1.6.2
 torch-tb-profiler>=0.4.0
+python-dotenv>=0.21.0
 --extra-index-url https://download.pytorch.org/whl/cu117

@@ -1,6 +1,5 @@
 import time
 from collections import deque
-from copy import deepcopy
 from random import randint
 from typing import Literal
 
@@ -19,7 +18,7 @@ from piece import Mino, Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
-EnemyAI = Burgiel
+EnemyAI = HatetrisAi
 
 
 class GameEnv(Env):
@@ -120,7 +119,7 @@ class GameEnv(Env):
         self.frame_count = next_frame_count
         # self.piece.age += 1
         if self.gameover:
-            self.score -= 5
+            self.score -= 500
             self.done = True
         reward = self.score - og_score
         # reward = self.score
@@ -143,30 +142,29 @@ class GameEnv(Env):
 
     @property
     def OBSERVATION_SPACE(self):
-        # np.array(list[9個], list)
-        # mx_list = [
-        #     len(self.ACTION_MAP),
-        #     7 * Well.DEPTH + 3 * 18,
-        #     (Well.WIDTH - 1) * Well.DEPTH,
-        #     180,
-        #     Well.WIDTH * Well.DEPTH,
-        #     (Well.WIDTH - 1) * Well.DEPTH,
-        #     23,
-        #     4,
-        #     180
-        # ] * len(self.ACTION_MAP)
-        # # print(np.array(mx_list))
-        # OBS_SPACE = Box(low=np.zeros(len(mx_list)),
-        #                 high=np.array(mx_list),
-        #                 dtype=np.uint8)
         OBS_SPACE = Dict({
             # "Aggregate_Height": Box(low=0, high=7 * Well.DEPTH + 3 * 18, dtype=np.uint8),
             # "Bumpiness": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-            "Column_Height": Box(
-                low=np.zeros(Well.WIDTH),
-                high=np.full(Well.WIDTH, Well.DEPTH + 1),
-                dtype=np.uint8
+            # "Column_Height": Box(
+            #     low=np.zeros(Well.WIDTH),
+            #     high=np.full(Well.WIDTH, Well.DEPTH + 1),
+            #     dtype=np.uint8
+            # ),
+            # "Column_Height_Diff": Box(
+            #     low=np.zeros(Well.WIDTH - 1),
+            #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
+            #     dtype=np.uint8
+            # ),
+            "Column_Height_Diff_Minus": Box(
+                low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
+                high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
+                dtype=np.int8
             ),
+            # "Column_Height_Diff_Limit": Box(
+            #     low=np.full(Well.WIDTH - 1, -3),
+            #     high=np.full(Well.WIDTH - 1, 3),
+            #     dtype=np.int8
+            # ),
             # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
             # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
@@ -187,103 +185,10 @@ class GameEnv(Env):
 
     # @watch
     def _get_observation(self) -> np.ndarray:
-        # @watch
-        def handle_input(field: Well, action: str, piece: Piece) -> None:
-            pre_x = piece.x
-            pre_y = piece.y
-            pre_rot = piece.rot
-            if len(action) == 1:
-                if (action == "D"):
-                    piece.y -= 1
-                elif (action == "L"):
-                    piece.x -= 1
-                elif (action == "R"):
-                    piece.x += 1
-                elif (action == "U"):
-                    piece.rot = (piece.rot + 1) % 4
-                elif (action == "H"):
-                    while piece.id != -1:
-                        handle_input(field=field, action="D", piece=piece)
 
-                if not is_piece_movable(piece, field):  # 動かせないなら元に戻す
-                    piece.x = pre_x
-                    piece.rot = pre_rot
-                    if (piece.y != pre_y and piece.id != -1):
-                        piece.y = pre_y
-                        lock_piece(piece, field)
-            else:
-                handle_input(field=field, action=action[0], piece=piece)
-                handle_input(field=field, action=action[1:], piece=piece)
-
-        # @watch
-        # @lru_cache(maxsize=None)
-        def is_piece_movable(piece: Piece, field: Well) -> bool:
-            for y in range(4):
-                for x in range(4):
-                    if piece.get_char(x, y) == "#":
-                        try:
-                            if (field.at(x + piece.x, 3 - y + piece.y).landed):
-                                return False
-                        except IndexError:
-                            return False
-            return True
-
-        # @watch
-        def lock_piece(piece: Piece, field: Well) -> Well:
-            mx = 0
-            for y in range(4):
-                for x in range(4):
-                    if piece.get_char(x, y) == "#":
-                        try:  # TODO: Refactor
-                            field.cellses[3 - y + piece.y][x + piece.x].landed = True
-                            if mx < 3 - y + piece.y:
-                                mx = 3 - y + piece.y
-                        except IndexError:
-                            pass
-            lines = field.delete_lines()
-            landing_height = mx
-            piece.age = -lines
-            piece.y = landing_height * 100
-            piece.id = -1
-
-        # @watch
-        # @lru_cache(maxsize=None)
-        def put_block(field: Well, action: str, piece: Piece) -> tuple[Well, int, int]:
-            if piece.id == Mino.O.value:
-                action.replace("U", "")
-            if (piece.id == Mino.I.value or piece.id == Mino.Z.value or piece.id == Mino.S.value) and action.count("U") == 2:
-                action.replace("UU", "")
-            handle_input(field, action, piece)
-            return (field, piece.y // 100, abs(piece.age))
-
-        def get_states(field: Well, landing_height: int, current_cleared_line: int, act: int) -> list[int]:
-            return np.array([
-                act,
-                sum(field.get_column_heights()),
-                field.get_bumpiness(),
-                field.get_column_transitions(),
-                field.get_cumulative_wells(),
-                field.get_holes(),
-                landing_height,
-                current_cleared_line,
-                field.get_row_transitions()
-            ])
-
-        # @watch
-        def get_possible_state() -> list[list[int]]:
-            states = np.array([], dtype=np.uint8)
-            for i, action in enumerate(ACTIONS):
-                future_field = deepcopy(self.field)
-                now_piece = deepcopy(self.piece)
-                # ブロックを置く
-                future_field, landing_height, cleared_line = put_block(future_field, action, now_piece)
-                states = np.append(states, get_states(future_field, landing_height, cleared_line, i))
-            return states
-        # from pprint import pprint
-        # pprint(states)
-        # # observation = np.array(
-        # #     [self.piece.id, self.piece.x, self.piece.y, self.piece.rot, sum(self.field.get_cells_1d())])
-        observation = np.array(self.field.get_column_heights())
+        # observation = np.array(self.field.get_column_heights())
+        observation = np.array(self.field.get_heights_diff_minus())
+        # observation = np.array(self.field.get_heights_diff_limit())
         # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         # observation = np.array(sum(self.field.get_column_heights()))
         # observation = np.append(observation, np.array(self.field.get_bumpiness()))
@@ -300,39 +205,39 @@ class GameEnv(Env):
         # return get_possible_state()
         return observation
 
-    # @lru_cache(maxsize=None)
     def _calc_score(self) -> float | int:
-        r = 1
-        # if self.current_cleard_line == 1:
-        #     r += 40
-        # elif self.current_cleard_line == 2:
-        #     r += 100
-        # elif self.current_cleard_line == 3:
-        #     r += 300
-        # elif self.current_cleard_line == 4:
-        #     r += 1200
-        # r += (22 - self.piece.y)
-        # r += (abs(self.piece.x - 3)) * 2
-        # r += np.linalg.norm(np.array([3, 19]) -
-        #                     np.array([self.piece.x, self.piece.y]))
-        r -= (max(self.field.get_column_heights()))
-        # r -= (sum(self.field.get_column_heights()))
-        # r += (self.piece.rot % 2) * 2
-        # r -= self.field.get_holes() * 7
-        r -= self.field.get_holes()
-        r -= self.field.get_bumpiness()
-        # r -= self.field.get_bumpiness() ** 2
-        r -= self.field.get_deviation()
+        r = 0
+        # # if self.current_cleard_line == 1:
+        # #     r += 40
+        # # elif self.current_cleard_line == 2:
+        # #     r += 100
+        # # elif self.current_cleard_line == 3:
+        # #     r += 300
+        # # elif self.current_cleard_line == 4:
+        # #     r += 1200
+        # # r += (22 - self.piece.y)
+        # # r += (abs(self.piece.x - 3)) * 2
+        # # r += np.linalg.norm(np.array([3, 19]) -
+        # #                     np.array([self.piece.x, self.piece.y]))
+        # r -= (max(self.field.get_column_heights()))
+        # # r -= (sum(self.field.get_column_heights()))
+        # # r += (self.piece.rot % 2) * 2
+        # # r -= self.field.get_holes() * 7
+        # r -= self.field.get_holes()
+        # r -= self.field.get_bumpiness()
+        # # r -= self.field.get_bumpiness() ** 2
+        # r -= self.field.get_deviation()
         r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line ** 2) * 100
-        # r += self.total_piece
-        # if (self.piece.y == self.piece_pos_y):
-        #     r -= 1
-        # print("r", r)
-        # if self.total_cleared_line > 100:
-        #     self.score += 10000
-        #     self.done = True
+        r += (self.total_cleared_line ** 1.5) * 100
+        # # r += self.total_piece
+        # # if (self.piece.y == self.piece_pos_y):
+        # #     r -= 1
+        # # print("r", r)
+        # # if self.total_cleared_line > 100:
+        # #     self.score += 10000
+        # #     self.done = True
 
+        r += -5 * self.field.get_average_height() - 16 * self.field.get_holes() - self.field.get_bumpiness_2d()
         return r
 
     def _handle_input(self, action: str, save=True) -> None:

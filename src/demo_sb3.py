@@ -4,9 +4,9 @@ from stable_baselines3 import DQN
 
 from game import GameEnv
 
-env = GameEnv(seed=1)
+env = GameEnv()
 
-model = DQN.load("./save_weights_burgiel_256/rl_model_1050000_steps")
+model = DQN.load("./save_weights_hate_1024_diff_minus/rl_model_650000_steps")
 
 pieces = []
 lines = []
