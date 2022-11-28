@@ -24,10 +24,11 @@ python -m pip install "gym~=0.26"
 ## Build hatetris-cpp
 
 ```bash
+docker pull nvidia/cuda:11.8.0-runtime-ubuntu22.04
 docker compose up -d
-docker exec -it yanai3.10 /bin/bash
+docker exec -it yanai3.11 /bin/bash
 cd src/
-clang++ -O3 -Wall -shared -std=c++20 -fPIC $(python3.10 -m pybind11 --includes) ai/hatebind.cpp -o hate$(python3.10-config --extension-suffix) -I /usr/include/python3.10
+clang++ -O3 -Wall -shared -std=c++20 -fPIC $(python3.11 -m pybind11 --includes) ai/hatebind.cpp -o hate$(python3.11-config --extension-suffix) -I /usr/include/python3.11
 ```
 
 ## Debug hate.cpp

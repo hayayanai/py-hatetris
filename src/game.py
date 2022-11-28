@@ -205,39 +205,39 @@ class GameEnv(Env):
         # return get_possible_state()
         return observation
 
-    # @lru_cache(maxsize=None)
     def _calc_score(self) -> float | int:
-        r = 1
-        # if self.current_cleard_line == 1:
-        #     r += 40
-        # elif self.current_cleard_line == 2:
-        #     r += 100
-        # elif self.current_cleard_line == 3:
-        #     r += 300
-        # elif self.current_cleard_line == 4:
-        #     r += 1200
-        # r += (22 - self.piece.y)
-        # r += (abs(self.piece.x - 3)) * 2
-        # r += np.linalg.norm(np.array([3, 19]) -
-        #                     np.array([self.piece.x, self.piece.y]))
-        r -= (max(self.field.get_column_heights()))
-        # r -= (sum(self.field.get_column_heights()))
-        # r += (self.piece.rot % 2) * 2
-        # r -= self.field.get_holes() * 7
-        r -= self.field.get_holes()
-        r -= self.field.get_bumpiness()
-        # r -= self.field.get_bumpiness() ** 2
-        r -= self.field.get_deviation()
+        r = 0
+        # # if self.current_cleard_line == 1:
+        # #     r += 40
+        # # elif self.current_cleard_line == 2:
+        # #     r += 100
+        # # elif self.current_cleard_line == 3:
+        # #     r += 300
+        # # elif self.current_cleard_line == 4:
+        # #     r += 1200
+        # # r += (22 - self.piece.y)
+        # # r += (abs(self.piece.x - 3)) * 2
+        # # r += np.linalg.norm(np.array([3, 19]) -
+        # #                     np.array([self.piece.x, self.piece.y]))
+        # r -= (max(self.field.get_column_heights()))
+        # # r -= (sum(self.field.get_column_heights()))
+        # # r += (self.piece.rot % 2) * 2
+        # # r -= self.field.get_holes() * 7
+        # r -= self.field.get_holes()
+        # r -= self.field.get_bumpiness()
+        # # r -= self.field.get_bumpiness() ** 2
+        # r -= self.field.get_deviation()
         r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line ** 2) * 100
-        # r += self.total_piece
-        # if (self.piece.y == self.piece_pos_y):
-        #     r -= 1
-        # print("r", r)
-        # if self.total_cleared_line > 100:
-        #     self.score += 10000
-        #     self.done = True
+        r += (self.total_cleared_line ** 1.5) * 100
+        # # r += self.total_piece
+        # # if (self.piece.y == self.piece_pos_y):
+        # #     r -= 1
+        # # print("r", r)
+        # # if self.total_cleared_line > 100:
+        # #     self.score += 10000
+        # #     self.done = True
 
+        r += -5 * self.field.get_average_height() - 16 * self.field.get_holes() - self.field.get_bumpiness_2d()
         return r
 
     def _handle_input(self, action: str, save=True) -> None:

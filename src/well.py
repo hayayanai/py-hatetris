@@ -124,6 +124,9 @@ class Well:
                     break
         return res
 
+    def get_average_height(self) -> int | float:
+        return sum(self.get_column_heights()) / Well.WIDTH
+
     def get_heights_diff(self) -> list[int]:
         lis = self.get_column_heights()
         ans = [0] * (Well.WIDTH - 1)
@@ -195,6 +198,18 @@ class Well:
         lis = self.get_column_heights()
         for x in range(Well.WIDTH - 1):
             v += abs(lis[x] - lis[x + 1])
+        return v
+
+    def get_bumpiness_2d(self) -> int:
+        """Summing the squared values of the differences of neighboring columns.
+
+        Returns:
+            int: the sum
+        """
+        v = 0
+        lis = self.get_column_heights()
+        for x in range(Well.WIDTH - 1):
+            v += ((lis[x] - lis[x + 1]) ** 2)
         return v
 
     def get_deviation(self) -> int | float:
