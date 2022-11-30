@@ -18,7 +18,7 @@ from piece import Mino, Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
-EnemyAI = HatetrisAi
+EnemyAI = SevenAi
 
 
 class GameEnv(Env):
