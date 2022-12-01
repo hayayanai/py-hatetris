@@ -32,14 +32,14 @@ class EnemyEnv(Env):
         return self.get_observation()
 
     def step(self, action_index: int) -> tuple[np.ndarray, float, bool, dict]:
-        og_score = self.score
+        # og_score = self.score
         self.player_env.piece.id = action_index
         action, _state = EnemyEnv.PLAYER_MODEL.predict(self.obs)
         self.obs, rewards, dones, info = self.player_env.step(action)
         # self.score = -1 * rewards + int(dones) * 500 - self.player_env.frame_count * 10
-        self.score = -1 * rewards
+        self.score = -1 * rewards + int(dones) * 500
         self.done = dones
-        r = og_score - self.score
+        r = self.score
 
         info = {
             "total_piece": self.player_env.total_piece,

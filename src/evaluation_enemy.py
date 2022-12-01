@@ -17,7 +17,7 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
     """
 
     env = EnemyEnv()
-    model = DQN.load(f"./{model_name}/rl_model_{step}_steps")
+    model = DQN.load(f"./weights/{model_name}/rl_model_{step}_steps")
 
     pieces = []
     lines = []
@@ -26,7 +26,7 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
     max_replay_seed = -1
 
     for i in range(repeat):
-        obs = env.reset(regenerate=True)
+        obs = env.reset()
         while True:
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
@@ -43,8 +43,6 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
             print(f"\r{i+1} / {repeat}", end="")
     if verbose == 2:
         print()
-    # print("rm, cm", mx_r_trans, mx_c_trans)
-    # print("rm, cm", mi_r_trans, mi_c_trans)
 
     with open("src/replay_enemy.py", mode="w") as f:
         f.writelines("from collections import deque\n\n")
