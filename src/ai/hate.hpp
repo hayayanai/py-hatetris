@@ -20,7 +20,7 @@ public:
     Piece()
     {
         x = 3;
-        y = 19;
+        y = 16;
         id = 0;
         rot = 0;
         age = 0;
@@ -28,7 +28,7 @@ public:
     Piece(int id) : id(id)
     {
         x = 3;
-        y = 19;
+        y = 16;
         rot = 0;
         age = 0;
     }
@@ -86,13 +86,13 @@ private:
         "UUURRRRRH"
         };
 
-    const int DEPTH = 23;
+    const int DEPTH = 20;
     const int WIDTH = 10;
     const std::vector<std::vector<int>> field;
     std::vector<std::vector<int>> future_field;
     int filledLine(std::vector<std::vector<int>> &field);
     void cutLine(int y, std::vector<std::vector<int>> &field);
-    // bool field[23][10];
+    // bool field[20][10];
 
 protected:
     void putBlock(std::vector<std::vector<int>> &field, std::string action, int pid);

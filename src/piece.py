@@ -191,7 +191,7 @@ class Piece():
 
     def __init__(self, piece: int | Mino = Mino.I) -> None:
         self.x = 3
-        self.y = 19
+        self.y = 16
         if isinstance(piece, int):
             self.id = piece
         elif isinstance(piece, Mino):

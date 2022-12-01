@@ -151,7 +151,7 @@ class GameEnv(Env):
             180,
             Well.WIDTH * Well.DEPTH,
             (Well.WIDTH - 1) * Well.DEPTH,
-            23,
+            20,
             4,
             180
         ] * len(self.ACTION_MAP)
@@ -165,7 +165,7 @@ class GameEnv(Env):
         #     Discrete(180),
         #     Discrete(Well.WIDTH * Well.DEPTH),
         #     Discrete((Well.WIDTH - 1) * Well.DEPTH),
-        #     Discrete(23),
+        #     Discrete(20),
         #     Discrete(4),
         #     Discrete(180)
         # ))
@@ -187,7 +187,7 @@ class GameEnv(Env):
         #     #     dtype=np.uint8
         #     # ),
         #     # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-        #     # "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
+        #     # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
         #     "PieceID1": Box(low=0, high=6, dtype=np.uint8),
         #     # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
         #     # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
@@ -323,7 +323,7 @@ class GameEnv(Env):
             r += 1200
         # r += (22 - self.piece.y)
         # r += (abs(self.piece.x - 3)) * 2
-        # r += np.linalg.norm(np.array([3, 19]) -
+        # r += np.linalg.norm(np.array([3, 16]) -
         #                     np.array([self.piece.x, self.piece.y]))
         # r -= (max(self.field.get_column_heights()))
         # # r -= (sum(self.field.get_column_heights()))

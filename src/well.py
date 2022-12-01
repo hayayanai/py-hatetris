@@ -9,7 +9,7 @@ class Cell:
 
 class Well:
     cellses: list[list[Cell]]
-    DEPTH: int = 23
+    DEPTH: int = 20
     WIDTH: int = 10
     XS: list[int] = list(range(WIDTH))
     YS: list[int] = list(range(DEPTH))

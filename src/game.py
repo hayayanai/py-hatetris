@@ -13,7 +13,7 @@ from ai.hatetris import HatetrisAi
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
-from piece import Mino, Piece
+from piece import Piece
 # from watch import watch
 from well import Well
 
@@ -175,7 +175,7 @@ class GameEnv(Env):
             #     dtype=np.uint8
             # ),
             # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
-            # "Landing_Height": Box(low=0, high=23, dtype=np.uint8),
+            # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
             "PieceID1": Box(low=0, high=6, dtype=np.uint8),
             # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
             # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
@@ -217,7 +217,7 @@ class GameEnv(Env):
         # #     r += 1200
         # # r += (22 - self.piece.y)
         # # r += (abs(self.piece.x - 3)) * 2
-        # # r += np.linalg.norm(np.array([3, 19]) -
+        # # r += np.linalg.norm(np.array([3, 16]) -
         # #                     np.array([self.piece.x, self.piece.y]))
         # r -= (max(self.field.get_column_heights()))
         # # r -= (sum(self.field.get_column_heights()))
