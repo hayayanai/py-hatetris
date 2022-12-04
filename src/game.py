@@ -37,7 +37,13 @@ class GameEnv(Env):
     replay: deque[str] | None
     seed: int
 
-    def __init__(self, replay: deque[str] | None = None, seed: int | None = None, save_replay: bool = False) -> None:
+    def __init__(
+        self,
+        replay: deque[str] | None = None,
+        seed: int | None = None,
+        save_replay: bool = False
+    ) -> None:
+
         super().__init__()
         self.save_replay: bool = save_replay
         from window import RenderWindow

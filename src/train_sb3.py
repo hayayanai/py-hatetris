@@ -1,8 +1,10 @@
 import datetime
 import time
+from shutil import copy2
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.logger import configure
 from torch.cuda import is_available
 
 from evaluation import evaluate
@@ -16,12 +18,19 @@ print("torch.cuda.is_available():", is_available())
 # DEVICE = "cuda"  # ["cpu", "cuda", "auto"]
 seed = 20221015
 
-NOTIFICATION = True
 
+def train(
+    model_name: str,
+    batch_size: int,
+    timesteps: int,
+    device: str = "cuda",
+    notification: bool = True
+) -> None:
 
-def train(model_name: str, batch_size: int, timesteps: int, device: str = "cuda"):
     env = GameEnv()
-    model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="log", device=device, batch_size=batch_size)
+    logger = configure(f"log/{model_name}", ["stdout", "log", "csv", "json", "tensorboard"])
+    model = DQN("MlpPolicy", env, verbose=1, device=device, batch_size=batch_size)
+    model.set_logger(logger)
 
     print("START!")
     print(model_name, batch_size, timesteps, device)
@@ -31,14 +40,17 @@ def train(model_name: str, batch_size: int, timesteps: int, device: str = "cuda"
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 
+    with open(f"weights/{model_name}/config.txt", mode="w") as f:
+        f.writelines(f"{model_name}, {batch_size}, {timesteps}, {device}\n")
+
+    copy2("src/game.py", f"weights/{model_name}/")
+    copy2("src/actions.py", f"weights/{model_name}/")
+
     time_spent = time.time() - time_start
 
     del model
 
     print(datetime.timedelta(seconds=time_spent))
-
-    # for i in range(1, 10):
-    #     print(evaluate(model_name=model_name, step=i * (timesteps // 10), repeat=1000, verbose=1))
 
     ave, mx = evaluate(model_name=model_name, step=timesteps, repeat=1000, verbose=1)
     print(model_name, ave, mx)
@@ -47,7 +59,7 @@ def train(model_name: str, batch_size: int, timesteps: int, device: str = "cuda"
         "username": "学習終了",
         "content": f"{model_name}\ntotal_timesteps: {timesteps}\nDuration: {datetime.timedelta(seconds=time_spent)}\nAverage: {ave}\nMax: {mx}"
     }
-    if NOTIFICATION:
+    if notification:
         send_webhook(payload)
 
 
@@ -58,5 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("batch_size", type=int, help="batch size")
     parser.add_argument("step", type=int, help="timesteps")
     parser.add_argument("device", type=str, help="cpu | cuda | auto", default="cuda")
+    parser.add_argument("-n", "--notification", type=bool, default=True)
     args = parser.parse_args()
-    train(args.name, batch_size=args.batch_size, timesteps=args.step, device=args.device)
+
+    train(args.name, batch_size=args.batch_size, timesteps=args.step, device=args.device, notification=args.notification)

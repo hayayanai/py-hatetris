@@ -1,4 +1,6 @@
+from matplotlib import pyplot as plt
 from stable_baselines3 import DQN
+from tqdm.auto import tqdm
 
 from game import GameEnv
 
@@ -24,19 +26,12 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
     mx = -1
     max_replay = []
     max_replay_seed = -1
-    # mx_r_trans = 0
-    # mx_c_trans = 0
-    # mi_r_trans = 0
-    # mi_c_trans = 0
-    for i in range(repeat):
+
+    for i in tqdm(range(repeat), leave=False):
         obs = env.reset(regenerate=True)
         while True:
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
-            # mx_r_trans = max(mx_r_trans, info["r_trans"])
-            # mx_c_trans = max(mx_c_trans, info["c_trans"])
-            # mi_r_trans = min(mi_r_trans, info["r_trans"])
-            # mi_c_trans = min(mi_c_trans, info["c_trans"])
 
             if dones:
                 if mx < info["total_cleared_line"]:
@@ -46,12 +41,6 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
                 pieces.append(info["total_piece"])
                 lines.append(info["total_cleared_line"])
                 break
-        if verbose == 2:
-            print(f"\r{i+1} / {repeat}", end="")
-    if verbose == 2:
-        print()
-    # print("rm, cm", mx_r_trans, mx_c_trans)
-    # print("rm, cm", mi_r_trans, mi_c_trans)
 
     with open("src/replay.py", mode="w") as f:
         f.writelines("from collections import deque\n\n")
@@ -59,6 +48,33 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
         f.writelines(f"replay = {str(max_replay)}\n")
 
     return (sum(lines) / len(lines), mx)
+
+
+def detail_evaluation(model_name: str, total_step: int, repeat: int = 5) -> tuple[list, list]:
+    mean_list = [0] * 100
+    max_list = [0] * 100
+    for i in tqdm(range(1, 100)):
+        mean_list[i], max_list[i] = evaluate(model_name, (total_step // 100) * i, repeat, verbose=0)
+
+    with open(f"weights/{model_name}/evaluation.txt", mode="w") as f:
+        f.writelines(f"mean: {mean_list}\n")
+        f.writelines(f"max: {max_list}\n")
+    return mean_list, max_list
+
+
+def graph(model_name: str, total_step: int):
+    x = range(total_step // 100, total_step + 1, total_step // 100)
+    mean_list, max_list = detail_evaluation(model_name, total_step)
+    plt.subplot(2, 1, 1)
+    plt.plot(x, mean_list)
+    plt.ylabel("lines")
+
+    plt.subplot(2, 1, 2)
+    plt.plot(x, max_list)
+    plt.xlabel("steps")
+    plt.ylabel("lines")
+
+    plt.savefig(f"weights/{model_name}/graph.png", format="png")
 
 
 if __name__ == "__main__":
@@ -70,3 +86,5 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", type=int, default=2)
     args = parser.parse_args()
     print(evaluate(args.name, args.step, repeat=args.repeat, verbose=args.verbose))
+    # print(detail_evaluation("save_weights_seven_1024_diff_minus_reward2", 10000000))
+    # graph("save_weights_seven_1024_diff_minus_reward2", 10000000)
