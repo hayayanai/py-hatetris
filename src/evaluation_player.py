@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from stable_baselines3 import DQN
 from tqdm.auto import tqdm
 
-from enemy_env import EnemyEnv
+from player_env import PlayerEnv
 
 
 def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool = True) -> tuple:
@@ -12,13 +12,12 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool =
         model_name (str): saved name
         step (int): valid step
         repeat (int, optional): how many repeat. Defaults to 1000.
-        verbose (int, optional): 2 shows progress. Defaults to 2.
 
     Returns:
         tuple: (sum(lines) / len(lines), max_lines)
     """
 
-    env = EnemyEnv()
+    env = PlayerEnv(save_replay=True)
     model = DQN.load(f"./weights/{model_name}/rl_model_{step}_steps")
 
     pieces = []
@@ -28,7 +27,7 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool =
     max_replay_seed = -1
 
     for i in tqdm(range(repeat), leave=False):
-        obs = env.reset()
+        obs = env.reset(regenerate=True)
         while True:
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
@@ -60,19 +59,14 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool =
     return (sum(lines) / len(lines), mx)
 
 
-def detail_evaluation(model_name: str, total_step: int, repeat: int = 200) -> tuple[list, list]:
+def detail_evaluation(model_name: str, total_step: int, repeat: int = 100) -> tuple[list, list]:
     mean_list = [0] * 100
     max_list = [0] * 100
-    for i in tqdm(range(1, 101)):
-        mean_list[i - 1], max_list[i - 1] = evaluate(
+    for i in tqdm(range(1, 100)):
+        mean_list[i], max_list[i] = evaluate(
             model_name, (total_step // 100) * i, repeat, save_replay=False)
-    # max_idx = max_list.index(max(max_list))
-    min_idx = 0
-    for i, ele in enumerate(mean_list):
-        if ele == min(mean_list):
-            min_idx = i
-
-    evaluate(model_name, (total_step // 100) * min_idx, 1000, True)
+    max_idx = max_list.index(max(max_list))
+    evaluate(model_name, (total_step // 100) * max_idx, 1000, True)
 
     with open(f"weights/{model_name}/evaluation.txt", mode="w") as f:
         f.writelines(f"mean: {mean_list}\n")
@@ -105,4 +99,5 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", type=int, default=2)
     args = parser.parse_args()
     # print(evaluate(args.name, args.step, repeat=args.repeat, verbose=args.verbose))
-    graph("enemy_1024", 5000000)
+    # print(detail_evaluation("save_weights_seven_1024_diff_minus_reward2", 10000000))
+    graph("player_1024", 5000000)

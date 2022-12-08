@@ -13,6 +13,7 @@ from ai.hatetris import HatetrisAi
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
+# from ai.trained import TrainedAi  # Avoid circular import
 from piece import Piece
 # from watch import watch
 from well import Well

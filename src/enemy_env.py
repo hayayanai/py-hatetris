@@ -9,7 +9,8 @@ from well import Well
 
 class EnemyEnv(Env):
     ACTION_MAP = np.array([0, 1, 2, 3, 4, 5, 6])
-    PLAYER_MODEL: DQN = DQN.load("./weights/save_weights_seven_1024_diff_minus_reward/rl_model_5000000_steps")
+    PLAYER_MODEL: DQN = DQN.load(
+        "./weights/seven_1024_diff_minus_reward/rl_model_4900000_steps")
 
     def __init__(self) -> None:
         super().__init__()

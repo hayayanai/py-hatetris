@@ -1,14 +1,14 @@
 import datetime
-from shutil import copy2
 import time
+from shutil import copy2
 
 from stable_baselines3 import DQN
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
 from torch.cuda import is_available
 
-from enemy_env import EnemyEnv
-from evaluation_enemy import evaluate
+from evaluation import evaluate
+from player_env import PlayerEnv
 from notification import send_webhook
 
 print("torch.cuda.is_available():", is_available())
@@ -26,7 +26,8 @@ def train(
     device: str = "cuda",
     notification: bool = True
 ) -> None:
-    env = EnemyEnv()
+
+    env = PlayerEnv()
     logger = configure(f"log/{model_name}",
                        ["stdout", "log", "csv", "json", "tensorboard"])
     model = DQN("MlpPolicy", env, verbose=1,
@@ -53,8 +54,7 @@ def train(
 
     print(datetime.timedelta(seconds=time_spent))
 
-    ave, mx = evaluate(model_name=model_name,
-                       step=timesteps, repeat=1000)
+    ave, mx = evaluate(model_name=model_name, step=timesteps, repeat=1000)
     print(model_name, ave, mx)
 
     payload = {
@@ -75,5 +75,6 @@ if __name__ == "__main__":
                         help="cpu | cuda | auto", default="cuda")
     parser.add_argument("-n", "--notification", type=bool, default=True)
     args = parser.parse_args()
+
     train(args.name, batch_size=args.batch_size, timesteps=args.step,
           device=args.device, notification=args.notification)
