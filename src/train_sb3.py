@@ -28,15 +28,17 @@ def train(
 ) -> None:
 
     env = GameEnv()
-    logger = configure(f"log/{model_name}", ["stdout", "log", "csv", "json", "tensorboard"])
-    model = DQN("MlpPolicy", env, verbose=1, device=device, batch_size=batch_size)
+    logger = configure(f"log/{model_name}",
+                       ["stdout", "log", "csv", "json", "tensorboard"])
+    model = DQN("MlpPolicy", env, verbose=1,
+                device=device, batch_size=batch_size)
     model.set_logger(logger)
 
     print("START!")
     print(model_name, batch_size, timesteps, device)
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
-        save_freq=timesteps // 100, save_path=f"weights/{model_name}/")
+        save_freq=timesteps // 100, save_path=f"weights/{model_name}/", save_replay_buffer=True, save_vecnormalize=True)
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 
@@ -52,7 +54,8 @@ def train(
 
     print(datetime.timedelta(seconds=time_spent))
 
-    ave, mx = evaluate(model_name=model_name, step=timesteps, repeat=1000, verbose=1)
+    ave, mx = evaluate(model_name=model_name,
+                       step=timesteps, repeat=1000, verbose=1)
     print(model_name, ave, mx)
 
     payload = {
@@ -69,8 +72,10 @@ if __name__ == "__main__":
     parser.add_argument("name", type=str, help="model name")
     parser.add_argument("batch_size", type=int, help="batch size")
     parser.add_argument("step", type=int, help="timesteps")
-    parser.add_argument("device", type=str, help="cpu | cuda | auto", default="cuda")
+    parser.add_argument("device", type=str,
+                        help="cpu | cuda | auto", default="cuda")
     parser.add_argument("-n", "--notification", type=bool, default=True)
     args = parser.parse_args()
 
-    train(args.name, batch_size=args.batch_size, timesteps=args.step, device=args.device, notification=args.notification)
+    train(args.name, batch_size=args.batch_size, timesteps=args.step,
+          device=args.device, notification=args.notification)

@@ -18,7 +18,7 @@ from piece import Piece
 from well import Well
 
 AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
-EnemyAI = SevenAi
+EnemyAI = HatetrisAi
 
 
 class GameEnv(Env):
@@ -182,7 +182,8 @@ class GameEnv(Env):
             # ),
             # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
             # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
-            "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+            # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
+            "PieceID2": Discrete(7),
             # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
             # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
@@ -203,7 +204,11 @@ class GameEnv(Env):
         # observation = np.append(observation, self.field.get_cumulative_wells())
         # # observation = np.append(observation, np.array(self.field.get_cells_1d()))
         # observation = np.append(observation, self.field.get_holes())
-        observation = np.append(observation, self.piece.id)
+        lis = [0] * 7
+        lis[self.piece.id] = 1
+        # observation = np.append(observation, self.piece.id)
+        observation = np.append(observation, np.array(lis))
+
         # observation = np.append(observation, self.landing_height)
         # observation = np.append(observation, self.current_cleard_line)
         # observation = np.append(observation, self.field.get_row_transitions())
@@ -243,7 +248,8 @@ class GameEnv(Env):
         # #     self.score += 10000
         # #     self.done = True
 
-        r += -5 * self.field.get_average_height() - 16 * self.field.get_holes() - self.field.get_bumpiness_2d()
+        r += -5 * self.field.get_average_height() - 16 * self.field.get_holes() - \
+            self.field.get_bumpiness_2d()
         return r
 
     def _handle_input(self, action: str, save=True) -> None:
@@ -298,7 +304,8 @@ class GameEnv(Env):
             for x in range(4):
                 if self.piece.get_char(x, y) == "#":
                     try:  # TODO: Refactor
-                        self.field.cellses[3 - y + self.piece.y][x + self.piece.x].landed = True
+                        self.field.cellses[3 - y + self.piece.y][x +
+                                                                 self.piece.x].landed = True
                         if mx < 3 - y + self.piece.y:
                             mx = 3 - y + self.piece.y
                     except IndexError:
