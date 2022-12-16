@@ -1,5 +1,5 @@
 from enum import Enum
-from pprint import pprint
+# from pprint import pprint
 from random import randint
 from time import sleep
 
@@ -23,9 +23,9 @@ if (mode == Mode.REPLAY):
 else:
     game = GameEnv(seed=1)
 
-# print(game.action_space)
-# print(game.observation_space)
-# print(game.observation_space.sample())
+print(game.action_space)
+print(game.observation_space)
+print(game.observation_space.sample())
 space = game.observation_space
 if isinstance(space, Box):
     # print('    最小値: ', space.low)
@@ -45,7 +45,8 @@ while not game.done:
         game.render()
 
     elif mode == Mode.RANDOM:
-        obs, reward, _, info = game.step(action_index=randint(0, len(ACTIONS) - 1))
+        obs, reward, _, info = game.step(
+            action_index=randint(0, len(ACTIONS) - 1))
         print("reward:", reward)
         # pprint(info)
         game.render()
