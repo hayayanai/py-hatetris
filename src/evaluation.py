@@ -5,14 +5,13 @@ from tqdm.auto import tqdm
 from game import GameEnv
 
 
-def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -> tuple:
+def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool = True) -> tuple:
     """evaluate model
 
     Args:
         model_name (str): saved name
         step (int): valid step
         repeat (int, optional): how many repeat. Defaults to 1000.
-        verbose (int, optional): 2 shows progress. Defaults to 2.
 
     Returns:
         tuple: (sum(lines) / len(lines), max_lines)
@@ -42,19 +41,32 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, verbose: int = 2) -
                 lines.append(info["total_cleared_line"])
                 break
 
-    with open("src/replay.py", mode="w") as f:
-        f.writelines("from collections import deque\n\n")
-        f.writelines(f"seed = {max_replay_seed}\n")
-        f.writelines(f"replay = {str(max_replay)}\n")
+    if save_replay:
+        with open("src/replay.py", mode="w") as f:
+            f.writelines("from collections import deque\n\n")
+            f.writelines(f"seed = {max_replay_seed}\n")
+            f.writelines(f"replay = {str(max_replay)}\n")
+
+        with open(f"./weights/{model_name}/replay.py", mode="w") as f:
+            f.writelines(f"# step: {step}\n\n")
+            f.writelines("from collections import deque\n\n")
+            f.writelines(f"seed = {max_replay_seed}\n")
+            f.writelines(f"replay = {str(max_replay)}\n")
+
+        print(f"step: {step}")
+        print((sum(lines) / len(lines), mx))
 
     return (sum(lines) / len(lines), mx)
 
 
-def detail_evaluation(model_name: str, total_step: int, repeat: int = 5) -> tuple[list, list]:
+def detail_evaluation(model_name: str, total_step: int, repeat: int = 400) -> tuple[list, list]:
     mean_list = [0] * 100
     max_list = [0] * 100
-    for i in tqdm(range(1, 100)):
-        mean_list[i], max_list[i] = evaluate(model_name, (total_step // 100) * i, repeat, verbose=0)
+    for i in tqdm(range(1, 101)):
+        mean_list[i - 1], max_list[i - 1] = evaluate(
+            model_name, (total_step // 100) * i, repeat, save_replay=False)
+    max_idx = mean_list.index(max(mean_list))
+    evaluate(model_name, (total_step // 100) * max_idx, 1000, True)
 
     with open(f"weights/{model_name}/evaluation.txt", mode="w") as f:
         f.writelines(f"mean: {mean_list}\n")
@@ -82,9 +94,12 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Evaluate a Stable Baselines3 model")
     parser.add_argument("name", type=str, help="model name")
     parser.add_argument("step", type=int, help="timesteps")
-    parser.add_argument("-r", "--repeat", type=int, help="number of repeat", default=1000)
+    parser.add_argument("-r", "--repeat", type=int,
+                        help="number of repeat", default=1000)
     parser.add_argument("-v", "--verbose", type=int, default=2)
     args = parser.parse_args()
-    print(evaluate(args.name, args.step, repeat=args.repeat, verbose=args.verbose))
+    # print(evaluate(args.name, args.step, repeat=args.repeat, verbose=args.verbose))
     # print(detail_evaluation("save_weights_seven_1024_diff_minus_reward2", 10000000))
-    # graph("save_weights_seven_1024_diff_minus_reward2", 10000000)
+    graph("seven_1024_alpha0.001", 10000000)
+    # graph("mh_diff", 10000000)
+    # graph("mh_diff_limit", 10000000)
