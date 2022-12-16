@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 
 
 @dataclass
@@ -122,6 +123,30 @@ class Well:
                 if (self.at(x, y).landed):
                     res[x] = y + 1
                     break
+        return res
+
+    def get_max_height(self) -> int:
+        for x in Well.XS:
+            for y in range(0, Well.DEPTH)[::-1]:
+                if (self.at(x, y)).landed:
+                    return y
+        return 0
+
+    def get_max_height_diff(self) -> np.ndarray:
+        mx = self.get_max_height()
+        lis = np.array(self.get_column_heights())
+        return mx - lis
+
+    def get_max_height_diff_limit(self) -> list[int]:
+        mx = self.get_max_height()
+        res = [0] * Well.WIDTH
+        lis = self.get_column_heights()
+        for x in Well.XS:
+            val = mx - lis[x]
+            if val < -3:
+                res[x] = -3
+            else:
+                res[x] = val
         return res
 
     def get_average_height(self) -> int | float:
@@ -271,7 +296,8 @@ class Well:
             for x, code in enumerate(row):
                 if code.landed is False:
                     well = False
-                    right_empty = Well.WIDTH > x + 1 >= 0 and r_cellses[y][x + 1].landed is False
+                    right_empty = Well.WIDTH > x + \
+                        1 >= 0 and r_cellses[y][x + 1].landed is False
                     if left_empty or right_empty:
                         well = True
                     wells[x] = 0 if well else wells[x] + 1
@@ -317,5 +343,6 @@ if __name__ == "__main__":
     board_blueprint.reverse()
     for y in range(len(board_blueprint)):
         for x in range(Well.WIDTH):
-            field.at(x, y).landed = True if board_blueprint[y][x] == "#" else False
+            field.at(
+                x, y).landed = True if board_blueprint[y][x] == "#" else False
     field.render_wells()
