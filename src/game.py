@@ -9,7 +9,7 @@ from gym.spaces import Box, Dict, Discrete, flatten_space
 
 from actions import ACTIONS
 from ai.burgiel import Burgiel
-from ai.hatetris import HatetrisAi
+# from ai.hatetris import HatetrisAi
 from ai.lovetris import Lovetris
 from ai.random import RandomAi
 from ai.seven import SevenAi
@@ -18,8 +18,8 @@ from piece import Piece
 # from watch import watch
 from well import Well
 
-AIs = [Lovetris, RandomAi, Burgiel, SevenAi, HatetrisAi]
-EnemyAI = HatetrisAi
+AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
+EnemyAI = SevenAi
 
 
 class GameEnv(Env):
@@ -167,6 +167,17 @@ class GameEnv(Env):
                 high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
                 dtype=np.int8
             ),
+            # "max_height": Box(low=0, high=20, dtype=np.uint8),
+            # "max_height_diff": Box(
+            #     low=np.full(Well.WIDTH, -1 * (Well.DEPTH)),
+            #     high=np.zeros(Well.WIDTH),
+            #     dtype=np.int8
+            # ),
+            # "max_height_diff_limit": Box(
+            #     low=np.full(Well.WIDTH, -3),
+            #     high=np.zeros(Well.WIDTH),
+            #     dtype=np.int8
+            # ),
             # "Column_Height_Diff_Limit": Box(
             #     low=np.full(Well.WIDTH - 1, -3),
             #     high=np.full(Well.WIDTH - 1, 3),
@@ -196,6 +207,9 @@ class GameEnv(Env):
 
         # observation = np.array(self.field.get_column_heights())
         observation = np.array(self.field.get_heights_diff_minus())
+        # observation = np.array(self.field.get_max_height())
+        # observation = np.append(
+        #     observation, self.field.get_max_height_diff())
         # observation = np.array(self.field.get_heights_diff_limit())
         # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         # observation = np.array(sum(self.field.get_column_heights()))
