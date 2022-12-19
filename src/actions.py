@@ -119,4 +119,12 @@ action1 = [
     "URURURRRH",
 ]
 
+manual = [
+    " ",
+    "L",
+    "H",
+    "R",
+    "U",
+]
+
 ACTIONS = action2
