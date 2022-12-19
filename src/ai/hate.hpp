@@ -83,8 +83,7 @@ private:
         "UUURRH",
         "UUURRRH",
         "UUURRRRH",
-        "UUURRRRRH"
-        };
+        "UUURRRRRH"};
 
     const int DEPTH = 20;
     const int WIDTH = 10;
@@ -110,7 +109,7 @@ public:
     }
     int getFirstPiece()
     {
-        return WORST_PIECES[0];
+        return getHatetris();
     }
     // int getNextPiece();
     int getHatetris();

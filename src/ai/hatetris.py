@@ -94,7 +94,8 @@ class HatetrisAi(EnemyAi):
                 while piece.id != -1:
                     self._handle_input(field=field, action="D", piece=piece)
 
-            if not self._is_piece_movable(piece, field) and (piece.id != -1):  # 動かせないなら元に戻す
+            # 動かせないなら元に戻す
+            if not self._is_piece_movable(piece, field) and (piece.id != -1):
                 piece.x = pre_x
                 piece.rot = pre_rot
                 if (piece.y != pre_y):
@@ -140,9 +141,6 @@ if __name__ == "__main__":
         "          ",
         "          ",
         "          ",
-        "          ",
-        "          ",
-        "          ",
         "   ##     ",
         "   ##    #",
         "   ##    #",
@@ -158,18 +156,22 @@ if __name__ == "__main__":
         " #########",
     ]
     field = Well()
-    lis = [[None] * Well.WIDTH for _ in range(Well.DEPTH)]
-    board_blueprint.reverse()
-    for y in range(len(board_blueprint)):
-        for x in range(Well.WIDTH):
-            lis[y][x] = 1 if board_blueprint[y][x] == "#" else 0
-            field.at(x, y).landed = True if board_blueprint[y][x] == "#" else False
+    lis = [[False] * Well.WIDTH for _ in range(Well.DEPTH)]
+    # board_blueprint.reverse()
+    # for y in range(len(board_blueprint)):
+    #     for x in range(Well.WIDTH):
+    #         lis[y][x] = 1 if board_blueprint[y][x] == "#" else 0
+    #         field.at(
+    #             x, y).landed = True if board_blueprint[y][x] == "#" else False
     field.render_wells()
     h = Hate(lis)
     ai = HatetrisAi(field)
 
     # print("cpp:", h.get_next_piece())
     print("py:", ai._get_hatetris())
+    print("py:", ai.get_first_piece())
+    print("py:", ai.get_next_piece())
+
     # p = Blocks()
     # print(h.getFirstPiece())
     # print(h.getNextPiece())
