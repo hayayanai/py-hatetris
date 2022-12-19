@@ -28,7 +28,7 @@ def train(
 ) -> None:
     env = EnemyEnv()
     logger = configure(f"log/{model_name}",
-                       ["stdout", "log", "csv", "json", "tensorboard"])
+                       ["stdout", "csv", "json", "tensorboard"])
     model = DQN("MlpPolicy", env, verbose=1,
                 device=device, batch_size=batch_size)
     model.set_logger(logger)
@@ -37,7 +37,7 @@ def train(
     print(model_name, batch_size, timesteps, device)
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
-        save_freq=timesteps // 100, save_path=f"weights/{model_name}/", save_replay_buffer=True, save_vecnormalize=True)
+        save_freq=timesteps // 100, save_path=f"weights/{model_name}/")
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 
