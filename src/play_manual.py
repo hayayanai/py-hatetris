@@ -13,11 +13,7 @@ game.render()
 info = {}
 
 sid = input("STUDENT_ID (12k3456): ")
-dt = datetime.datetime
-
-info["sid"] = sid
-info["datetime"] = dt
-info["enemy"] = ENEMY
+dt_now = datetime.datetime.now()
 
 print("------------ HOW TO CONTROL ------------")
 print("1: Left, 2: HardDrop, 3: Right, 4: Rotate(CW)")
@@ -37,16 +33,21 @@ while not game.done:
     game.render()
 
 info["replay"] = "".join(list(info["replay"]))
+info["sid"] = sid
+info["datetime"] = dt_now.strftime("%Y/%m/%d %H:%M:%S")
+info["enemy"] = ENEMY
 
 filename = "experiment.json"
 
 with open(filename, "r") as f:
-    read_data = json.load(f)
+    data = json.load(f)
 
-save_data = [read_data, info]
+data.append(info)
 
 with open(filename, "w") as f:
-    json.dump(save_data, f)
+    json.dump(data, f)
+print("SAVED DATA")
+
 
 print("GAMEOVER")
 
