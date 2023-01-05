@@ -8,7 +8,7 @@ from stable_baselines3.common.logger import configure
 from torch.cuda import is_available
 
 from enemy_env import EnemyEnv
-from evaluation_enemy import evaluate
+from evaluation_enemy import detail_evaluation
 from notification import send_webhook
 
 print("torch.cuda.is_available():", is_available())
@@ -23,6 +23,8 @@ def train(
     model_name: str,
     batch_size: int,
     timesteps: int,
+    exp_fraction: float = 0.3,
+    alpha: float = 0.001,
     device: str = "cuda",
     notification: bool = True
 ) -> None:
@@ -30,7 +32,7 @@ def train(
     logger = configure(f"log/{model_name}",
                        ["stdout", "csv", "json", "tensorboard"])
     model = DQN("MlpPolicy", env, verbose=1,
-                device=device, batch_size=batch_size)
+                device=device, batch_size=batch_size, exploration_fraction=exp_fraction, learning_rate=alpha)
     model.set_logger(logger)
 
     print("START!")
@@ -53,13 +55,12 @@ def train(
 
     print(datetime.timedelta(seconds=time_spent))
 
-    ave, mx = evaluate(model_name=model_name,
-                       step=timesteps, repeat=1000)
-    print(model_name, ave, mx)
+    ave, mx = detail_evaluation(model_name, timesteps)
+    print(model_name, max(ave), max(mx))
 
     payload = {
         "username": "学習終了",
-        "content": f"{model_name}\ntotal_timesteps: {timesteps}\nDuration: {datetime.timedelta(seconds=time_spent)}\nAverage: {ave}\nMax: {mx}"
+        "content": f"{model_name}\ntotal_timesteps: {timesteps}\nDuration: {datetime.timedelta(seconds=time_spent)}\nAverage: {max(ave)}\nMax: {max(mx)}"
     }
     if notification:
         send_webhook(payload)
@@ -69,11 +70,17 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Train with Stable Baselines3")
     parser.add_argument("name", type=str, help="model name")
-    parser.add_argument("batch_size", type=int, help="batch size")
+    parser.add_argument("-bs", "--batch_size", type=int,
+                        help="batch size", default=1024)
     parser.add_argument("step", type=int, help="timesteps")
+    parser.add_argument("-ef", "--exploration_fraction",
+                        type=float, default=0.3)
+    parser.add_argument("--alpha", type=float,
+                        help="leaning_rate", default=0.001)
     parser.add_argument("device", type=str,
                         help="cpu | cuda | auto", default="cuda")
     parser.add_argument("-n", "--notification", type=bool, default=True)
     args = parser.parse_args()
-    train(args.name, batch_size=args.batch_size, timesteps=args.step,
+
+    train(args.name, batch_size=args.batch_size, timesteps=args.step, exp_fraction=args.exploration_fraction, alpha=args.alpha,
           device=args.device, notification=args.notification)

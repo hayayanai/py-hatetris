@@ -23,6 +23,8 @@ def train(
     model_name: str,
     batch_size: int,
     timesteps: int,
+    exp_fraction: float = 0.3,
+    alpha: float = 0.001,
     device: str = "cuda",
     notification: bool = True
 ) -> None:

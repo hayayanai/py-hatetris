@@ -191,11 +191,11 @@ class GameEnv(Env):
             #         np.ones(Well.WIDTH * Well.DEPTH - 1), 1),
             #     dtype=np.uint8
             # ),
-            # "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
+            "Holes": Box(low=0, high=(Well.WIDTH - 1) * Well.DEPTH, dtype=np.uint8),
             # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
             # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
             "PieceID2": Discrete(7),
-            # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+            "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
             # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
         })
@@ -217,14 +217,14 @@ class GameEnv(Env):
         # observation = np.append(observation, self.field.get_column_transitions())
         # observation = np.append(observation, self.field.get_cumulative_wells())
         # # observation = np.append(observation, np.array(self.field.get_cells_1d()))
-        # observation = np.append(observation, self.field.get_holes())
+        observation = np.append(observation, self.field.get_holes())
         lis = [0] * 7
         lis[self.piece.id] = 1
         # observation = np.append(observation, self.piece.id)
         observation = np.append(observation, np.array(lis))
 
         # observation = np.append(observation, self.landing_height)
-        # observation = np.append(observation, self.current_cleard_line)
+        observation = np.append(observation, self.current_cleard_line)
         # observation = np.append(observation, self.field.get_row_transitions())
 
         # return get_possible_state()
@@ -252,8 +252,8 @@ class GameEnv(Env):
         # r -= self.field.get_bumpiness()
         # # r -= self.field.get_bumpiness() ** 2
         # r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line ** 1.5) * 100
+        r += self.current_cleard_line ** 2 * 100
+        # r += (self.total_cleared_line ** 1.5) * 100
         # # r += self.total_piece
         # # if (self.piece.y == self.piece_pos_y):
         # #     r -= 1

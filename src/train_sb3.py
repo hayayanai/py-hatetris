@@ -5,10 +5,11 @@ from shutil import copy2
 from stable_baselines3 import DQN
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
+# from torch import compile
 from torch.cuda import is_available
 
 from evaluation import detail_evaluation
-from game_s import GameEnv
+from game_hate import GameEnv
 from notification import send_webhook
 
 print("torch.cuda.is_available():", is_available())
@@ -41,6 +42,7 @@ def train(
     time_start = time.time()
     checkpoint_callback = CheckpointCallback(
         save_freq=timesteps // 100, save_path=f"weights/{model_name}/")
+    # model = compile(model)
     model.learn(total_timesteps=timesteps, callback=checkpoint_callback)
     print("DONE!")
 

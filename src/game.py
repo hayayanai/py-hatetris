@@ -126,7 +126,7 @@ class GameEnv(Env):
         self.frame_count = next_frame_count
         # self.piece.age += 1
         if self.gameover:
-            self.score -= 500
+            # self.score -= 500
             self.done = True
         reward = self.score - og_score
         # reward = self.score
@@ -136,7 +136,7 @@ class GameEnv(Env):
         #     self.done = True
 
         info = {
-            # "frame_count": self.frame_count,
+            "frame_count": self.frame_count,
             # "c_trans": self.field.get_column_transitions(),
             # "r_trans": self.field.get_row_transitions(),
             "total_piece": self.total_piece,
@@ -162,11 +162,11 @@ class GameEnv(Env):
             #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
             #     dtype=np.uint8
             # ),
-            "Column_Height_Diff_Minus": Box(
-                low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
-                high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
-                dtype=np.int8
-            ),
+            # "Column_Height_Diff_Minus": Box(
+            #     low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
+            #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
+            #     dtype=np.int8
+            # ),
             # "max_height": Box(low=0, high=20, dtype=np.uint8),
             # "max_height_diff": Box(
             #     low=np.full(Well.WIDTH, -1 * (Well.DEPTH)),
@@ -178,11 +178,11 @@ class GameEnv(Env):
             #     high=np.zeros(Well.WIDTH),
             #     dtype=np.int8
             # ),
-            # "Column_Height_Diff_Limit": Box(
-            #     low=np.full(Well.WIDTH - 1, -3),
-            #     high=np.full(Well.WIDTH - 1, 3),
-            #     dtype=np.int8
-            # ),
+            "Column_Height_Diff_Limit": Box(
+                low=np.full(Well.WIDTH - 1, -3),
+                high=np.full(Well.WIDTH - 1, 3),
+                dtype=np.int8
+            ),
             # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
             # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
@@ -196,7 +196,7 @@ class GameEnv(Env):
             # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
             # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
             "PieceID2": Discrete(7),
-            # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+            "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
             # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
         })
@@ -206,11 +206,11 @@ class GameEnv(Env):
     def _get_observation(self) -> np.ndarray:
 
         # observation = np.array(self.field.get_column_heights())
-        observation = np.array(self.field.get_heights_diff_minus())
+        # observation = np.array(self.field.get_heights_diff_minus())
         # observation = np.array(self.field.get_max_height())
         # observation = np.append(
         #     observation, self.field.get_max_height_diff())
-        # observation = np.array(self.field.get_heights_diff_limit())
+        observation = np.array(self.field.get_heights_diff_limit())
         # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         # observation = np.array(sum(self.field.get_column_heights()))
         # observation = np.append(observation, np.array(self.field.get_bumpiness()))
@@ -225,7 +225,7 @@ class GameEnv(Env):
         observation = np.append(observation, np.array(lis))
 
         # observation = np.append(observation, self.landing_height)
-        # observation = np.append(observation, self.current_cleard_line)
+        observation = np.append(observation, self.current_cleard_line)
         # observation = np.append(observation, self.field.get_row_transitions())
 
         # return get_possible_state()
@@ -253,8 +253,8 @@ class GameEnv(Env):
         # r -= self.field.get_bumpiness()
         # # r -= self.field.get_bumpiness() ** 2
         # r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line ** 1.5) * 100
+        r += self.current_cleard_line ** 2 * 100
+        # r += (self.total_cleared_line ** 1.5) * 100
         # # r += self.total_piece
         # # if (self.piece.y == self.piece_pos_y):
         # #     r -= 1

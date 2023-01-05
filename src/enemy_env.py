@@ -10,7 +10,7 @@ from well import Well
 class EnemyEnv(Env):
     ACTION_MAP = np.array([0, 1, 2, 3, 4, 5, 6])
     PLAYER_MODEL: DQN = DQN.load(
-        "./weights/seven_1024_diff_minus_reward/rl_model_4900000_steps")
+        "./weights/game_s_seven_nogover/rl_model_10000000_steps")
 
     def __init__(self) -> None:
         super().__init__()
@@ -43,6 +43,7 @@ class EnemyEnv(Env):
         r = self.score
 
         info = {
+            "frame_count": self.player_env.frame_count,
             "total_piece": self.player_env.total_piece,
             "total_cleared_line": self.player_env.total_cleared_line,
             "seed": self.player_env.seed,

@@ -3,7 +3,7 @@ from time import sleep
 
 from gym.spaces import Box
 
-from game import GameEnv
+from game_hate import GameEnv
 
 
 from replay import replay, seed
