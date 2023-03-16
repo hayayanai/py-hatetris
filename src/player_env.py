@@ -10,6 +10,8 @@ from gym.spaces import Box, Dict, Discrete, flatten_space
 from actions import ACTIONS
 
 from ai.trained import TrainedAi
+# from ai.seven import SevenAi as TrainedAi
+# from ai.hatetris import HatetrisAi as TrainedAi
 from piece import Piece
 # from watch import watch
 from well import Well
@@ -47,6 +49,7 @@ class PlayerEnv(Env):
             self.replay = deque()
         else:
             self.replay = replay
+        self.replay_piece = deque()
 
         regenerate: bool
         if seed is None:
@@ -64,7 +67,7 @@ class PlayerEnv(Env):
         self.total_cleared_line = 0
         self.landing_height = 0
         self.field = Well()
-        self.enemy = TrainedAi(field=self.field)
+        self.enemy = TrainedAi(field=self.field, initial_seed=self.seed)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
@@ -82,7 +85,8 @@ class PlayerEnv(Env):
         if regenerate:
             self.seed = randint(0, 2**32 - 1)
             self.replay = deque()
-        self.enemy = TrainedAi(field=self.field)
+        self.replay_piece = deque()
+        self.enemy = TrainedAi(field=self.field, initial_seed=self.seed)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
         self.gameover = False
@@ -107,6 +111,7 @@ class PlayerEnv(Env):
         else:
             if self.save_replay:
                 self.replay.append(action_player)
+                self.replay_piece.append(self.piece.name)
             self._handle_input(action_player)
 
         observation = self._get_observation()
@@ -116,7 +121,7 @@ class PlayerEnv(Env):
         self.frame_count = next_frame_count
         # self.piece.age += 1
         if self.gameover:
-            self.score -= 500
+            # self.score -= 500
             self.done = True
         reward = self.score - og_score
         # reward = self.score
@@ -126,13 +131,14 @@ class PlayerEnv(Env):
         #     self.done = True
 
         info = {
-            # "frame_count": self.frame_count,
+            "frame_count": self.frame_count,
             # "c_trans": self.field.get_column_transitions(),
             # "r_trans": self.field.get_row_transitions(),
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line,
             "seed": self.seed,
-            "replay": self.replay
+            "replay": self.replay,
+            "replay_piece": self.replay_piece,
         }
 
         return observation, reward, self.done, info
@@ -152,16 +158,16 @@ class PlayerEnv(Env):
             #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
             #     dtype=np.uint8
             # ),
-            "Column_Height_Diff_Minus": Box(
-                low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
-                high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
-                dtype=np.int8
-            ),
-            # "Column_Height_Diff_Limit": Box(
-            #     low=np.full(Well.WIDTH - 1, -3),
-            #     high=np.full(Well.WIDTH - 1, 3),
+            # "Column_Height_Diff_Minus": Box(
+            #     low=np.full(Well.WIDTH - 1, -1 * (Well.DEPTH + 1)),
+            #     high=np.full(Well.WIDTH - 1, Well.DEPTH + 1),
             #     dtype=np.int8
             # ),
+            "Column_Height_Diff_Limit": Box(
+                low=np.full(Well.WIDTH - 1, -3),
+                high=np.full(Well.WIDTH - 1, 3),
+                dtype=np.int8
+            ),
             # "Column_Transitions": Box(low=0, high=180, dtype=np.uint8),
             # "Cumulative_Wells": Box(low=0, high=Well.WIDTH * Well.DEPTH, dtype=np.uint8),
             # "Field": Box(
@@ -175,7 +181,7 @@ class PlayerEnv(Env):
             # "Landing_Height": Box(low=0, high=20, dtype=np.uint8),
             # "PieceID1": Box(low=0, high=6, dtype=np.uint8),
             "PieceID2": Discrete(7),
-            # "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
+            "Row_Cleared": Box(low=0, high=4, dtype=np.uint8),
             # "Row_Transitions": Box(low=0, high=180, dtype=np.uint8),
 
         })
@@ -185,8 +191,8 @@ class PlayerEnv(Env):
     def _get_observation(self) -> np.ndarray:
 
         # observation = np.array(self.field.get_column_heights())
-        observation = np.array(self.field.get_heights_diff_minus())
-        # observation = np.array(self.field.get_heights_diff_limit())
+        # observation = np.array(self.field.get_heights_diff_minus())
+        observation = np.array(self.field.get_heights_diff_limit())
         # # observation = np.append(np.array(self.field.get_column_heights()), np.array(self.field.get_cells_1d()))
         # observation = np.array(sum(self.field.get_column_heights()))
         # observation = np.append(observation, np.array(self.field.get_bumpiness()))
@@ -200,7 +206,7 @@ class PlayerEnv(Env):
         # observation = np.append(observation, self.piece.id)
         observation = np.append(observation, np.array(lis))
         # observation = np.append(observation, self.landing_height)
-        # observation = np.append(observation, self.current_cleard_line)
+        observation = np.append(observation, self.current_cleard_line)
         # observation = np.append(observation, self.field.get_row_transitions())
 
         # return get_possible_state()
@@ -228,8 +234,8 @@ class PlayerEnv(Env):
         # r -= self.field.get_bumpiness()
         # # r -= self.field.get_bumpiness() ** 2
         # r -= self.field.get_deviation()
-        r += self.current_cleard_line ** 2 * 3
-        r += (self.total_cleared_line ** 1.5) * 100
+        r += self.current_cleard_line ** 2 * 100
+        # r += (self.total_cleared_line ** 1.5) * 100
         # # r += self.total_piece
         # # if (self.piece.y == self.piece_pos_y):
         # #     r -= 1

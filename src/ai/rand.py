@@ -14,5 +14,5 @@ class RandomAi(EnemyAi):
 
         Returns: Piece
         """
-        return Piece(randint(0, 1) * 3)
-        # return Piece(randint(0, 6))
+        # return Piece(randint(0, 1) * 3)
+        return Piece(randint(0, 6))

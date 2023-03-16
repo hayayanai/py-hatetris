@@ -1,3 +1,5 @@
+# 先生のアイデア
+
 import time
 from collections import deque
 from random import randint

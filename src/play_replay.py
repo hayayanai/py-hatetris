@@ -3,7 +3,7 @@ from time import sleep
 
 from gym.spaces import Box
 
-from game_hate import GameEnv
+from game import GameEnv
 
 
 from replay import replay, seed
@@ -21,5 +21,5 @@ if isinstance(space, Box):
 while not game.done:
 
     obs, reward, _, info = game.step(action_index=None)
-    sleep(0.1)
+    sleep(0.01)
     game.render()

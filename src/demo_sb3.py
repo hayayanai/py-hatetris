@@ -2,11 +2,12 @@ import time
 
 from stable_baselines3 import DQN
 
-from game import GameEnv
+# from player_env import PlayerEnv as GameEnv
+from game import GameEnv as GameEnv
 
 env = GameEnv()
 
-model = DQN.load("./save_weights_hate_1024_diff_minus/rl_model_650000_steps")
+model = DQN.load("./weights/Pseven/rl_model_10000000_steps")
 
 pieces = []
 lines = []

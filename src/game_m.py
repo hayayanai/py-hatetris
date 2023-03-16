@@ -1,3 +1,5 @@
+# Michaelのアイデア
+
 import time
 from collections import deque
 from copy import deepcopy
@@ -6,7 +8,7 @@ from typing import Literal
 
 import numpy as np
 from gym import Env
-from gym.spaces import Box, Dict, Tuple, Discrete, flatten_space
+from gym.spaces import Box, Discrete, flatten_space
 
 from actions import ACTIONS
 from ai.burgiel import Burgiel

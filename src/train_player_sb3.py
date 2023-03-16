@@ -7,7 +7,7 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
 from torch.cuda import is_available
 
-from evaluation import evaluate
+from evaluation_player import evaluate
 from player_env import PlayerEnv
 from notification import send_webhook
 
@@ -33,7 +33,7 @@ def train(
     logger = configure(f"log/{model_name}",
                        ["stdout", "csv", "json", "tensorboard"])
     model = DQN("MlpPolicy", env, verbose=1,
-                device=device, batch_size=batch_size)
+                device=device, batch_size=batch_size, exploration_fraction=exp_fraction, learning_rate=alpha)
     model.set_logger(logger)
 
     print("START!")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Train with Stable Baselines3")
     parser.add_argument("name", type=str, help="model name")
-    parser.add_argument("batch_size", type=int, help="batch size")
+    parser.add_argument("-bs", "batch_size", type=int, help="batch size")
     parser.add_argument("step", type=int, help="timesteps")
     parser.add_argument("device", type=str,
                         help="cpu | cuda | auto", default="cuda")

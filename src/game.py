@@ -57,6 +57,7 @@ class GameEnv(Env):
             self.replay = deque()
         else:
             self.replay = replay
+        self.replay_piece = deque()
 
         regenerate: bool
         if seed is None:
@@ -92,6 +93,7 @@ class GameEnv(Env):
         if regenerate:
             self.seed = randint(0, 2**32 - 1)
             self.replay = deque()
+        self.replay_piece = deque()
         self.enemy = EnemyAI(initial_seed=self.seed, field=self.field)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
@@ -117,6 +119,7 @@ class GameEnv(Env):
         else:
             if self.save_replay:
                 self.replay.append(action_player)
+                self.replay_piece.append(self.piece.name)
             self._handle_input(action_player)
 
         observation = self._get_observation()
@@ -142,7 +145,8 @@ class GameEnv(Env):
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line,
             "seed": self.seed,
-            "replay": self.replay
+            "replay": self.replay,
+            "replay_piece": self.replay_piece,
         }
 
         return observation, reward, self.done, info

@@ -2,14 +2,14 @@ version: '3'
 services:
   python3:
     build: .
-    container_name: 'yanai3.10'
+    container_name: 'py-hatetris'
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
     working_dir: '/root/workspace'
     tty: true
     volumes:

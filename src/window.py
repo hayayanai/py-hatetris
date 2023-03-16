@@ -3,15 +3,18 @@ from tkinter import Canvas, Tk
 from game import GameEnv
 from well import Well
 
-SIZE = 25
+SIZE = 30
 
 WIDTH = Well.WIDTH * SIZE + 400
+# WIDTH = Well.WIDTH * SIZE
+
 HEIGHT = Well.DEPTH * SIZE
 
 
 class RenderWindow(Tk):
     def __init__(self, env: GameEnv) -> None:
         super().__init__()
+        self.title("py-hatetris")
         self.game: GameEnv = env
         self.render_offset = 5
         self.geometry("%dx%d" % (
@@ -63,7 +66,8 @@ class RenderWindow(Tk):
         total_piece: {self.game.total_piece}
         score: {self.game.score}
         """
-        self.canvas.create_text(Well.WIDTH * SIZE + 150, 100, font=("", 18), text=txt)
+        self.canvas.create_text(Well.WIDTH * SIZE + 150,
+                                100, font=("", 18), text=txt)
 
 
 # class RenderServer():

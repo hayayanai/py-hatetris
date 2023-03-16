@@ -9,7 +9,7 @@ from stable_baselines3.common.logger import configure
 from torch.cuda import is_available
 
 from evaluation import detail_evaluation
-from game_hate import GameEnv
+from game import GameEnv
 from notification import send_webhook
 
 print("torch.cuda.is_available():", is_available())

@@ -25,5 +25,5 @@ RUN apt-get -y install python3.11-distutils
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 RUN python3.11 -m pip --version
 
-RUN python3.11 -m pip install -U pip wheel setuptools pybind11 stable-baselines3 python-dotenv torch-tb-profiler
-RUN python3.11 -m pip install --pre --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/nightly/cu117
+RUN python3.11 -m pip install -U pip wheel
+RUN python3.11 -m pip install -U setuptools==65.5.0

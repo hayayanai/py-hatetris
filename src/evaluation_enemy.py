@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from stable_baselines3 import DQN
 from tqdm.auto import tqdm
 
-from enemy_env import EnemyEnv
+from enemy_env import EnemyEnv as EnemyEnv
 
 
 def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool = True) -> tuple:
@@ -62,17 +62,13 @@ def evaluate(model_name: str, step: int, repeat: int = 1000, save_replay: bool =
     return (sum(lines) / len(lines), mx, t_length / repeat)
 
 
-def detail_evaluation(model_name: str, total_step: int, repeat: int = 100) -> tuple[list, list]:
+def detail_evaluation(model_name: str, total_step: int, repeat: int = 1000) -> tuple[list, list]:
     mean_list = [0] * 100
     max_list = [0] * 100
     for i in tqdm(range(1, 101)):
-        mean_list[i - 1], max_list[i - 1] = evaluate(
+        mean_list[i - 1], max_list[i - 1], t = evaluate(
             model_name, (total_step // 100) * i, repeat, save_replay=False)
-    # max_idx = max_list.index(max(max_list))
-    min_idx = 0
-    for i, ele in enumerate(mean_list):
-        if ele == min(mean_list):
-            min_idx = i
+    min_idx = mean_list.index(min(mean_list))
 
     evaluate(model_name, (total_step // 100) * min_idx, 1000, True)
 
@@ -107,4 +103,6 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", type=int, default=2)
     args = parser.parse_args()
     # print(evaluate(args.name, args.step, repeat=args.repeat, verbose=args.verbose))
-    print(evaluate("E_P_seven", 10000000, save_replay=False))
+    print(evaluate("E_P_seven_row", 10000000, save_replay=True))
+    # print(detail_evaluation("E_P_seven2", 10000000))
+    # print(detail_evaluation("E_P_E_P_seven", 10000000))

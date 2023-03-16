@@ -13,12 +13,13 @@ from ai.burgiel import Burgiel
 from ai.lovetris import Lovetris
 from ai.rand import RandomAi
 from ai.seven import SevenAi
+from ai.trained import TrainedAi
 # from ai.trained import TrainedAi  # Avoid circular import
 from piece import Piece
 # from watch import watch
 from well import Well
 
-AIs = [Lovetris, RandomAi, Burgiel, SevenAi]
+AIs = [Lovetris, RandomAi, Burgiel, SevenAi, TrainedAi]
 
 
 class GameEnv(Env):
@@ -42,7 +43,7 @@ class GameEnv(Env):
         replay: deque[str] | None = None,
         seed: int | None = None,
         save_replay: bool = False,
-        enemy: Literal["seven", "hate"] = "hate"
+        enemy: Literal["seven", "hate", "E_P_seven2"] = ""
     ) -> None:
 
         super().__init__()
@@ -55,6 +56,8 @@ class GameEnv(Env):
         elif enemy == "hate":
             from ai.hatetris import HatetrisAi
             self.EnemyAI = HatetrisAi
+        elif enemy == "E_P_seven2":
+            self.EnemyAI = TrainedAi
         ACTION_NUM = len(self.ACTION_MAP)
         self.action_space = Discrete(ACTION_NUM)
         self.observation_space = self.OBSERVATION_SPACE
@@ -63,6 +66,8 @@ class GameEnv(Env):
             self.replay = deque()
         else:
             self.replay = replay
+
+        self.replay_piece = deque()
 
         regenerate: bool
         if seed is None:
@@ -98,6 +103,7 @@ class GameEnv(Env):
         if regenerate:
             self.seed = randint(0, 2**32 - 1)
             self.replay = deque()
+        self.replay_piece = deque()
         self.enemy = self.EnemyAI(initial_seed=self.seed, field=self.field)
         self.piece = self.enemy.get_first_piece()
         self.piece_pos_y = self.piece.y
@@ -119,10 +125,14 @@ class GameEnv(Env):
 
         action_player = self.ACTION_MAP[action_index]
         if action_index is None:  # Play replay
-            self._handle_input(self.replay.popleft(), save=False)
+            s = self.replay.popleft()
+            if s == "H":
+                self.replay_piece.append(self.piece.name)
+            self._handle_input(s, save=False)
         else:
             if self.save_replay:
                 self.replay.append(action_player)
+                self.replay_piece.append(self.piece.name)
             self._handle_input(action_player)
 
         observation = self._get_observation()
@@ -148,7 +158,8 @@ class GameEnv(Env):
             "total_piece": self.total_piece,
             "total_cleared_line": self.total_cleared_line,
             "seed": self.seed,
-            "replay": self.replay
+            "replay": self.replay,
+            "replay_piece": self.replay_piece,
         }
 
         return observation, reward, self.done, info
