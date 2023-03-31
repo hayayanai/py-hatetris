@@ -2,24 +2,24 @@
 
 HATETRIS (HardDrop only) impl in Python>=3.10 and C++
 
-- [py-hatetris](#py-hatetris)
-  - [Make a virtual environment](#make-a-virtual-environment)
-    - [For Ubuntu](#for-ubuntu)
-    - [For powershell](#for-powershell)
-    - [For Docker](#for-docker)
-  - [Train](#train)
-    - [Setup HatetrisAI](#setup-hatetrisai)
-    - [Enable Discord WebHook notification](#enable-discord-webhook-notification)
-  - [Logging on Tensorboard](#logging-on-tensorboard)
-  - [EnemyAI vs Human](#enemyai-vs-human)
-  - [Evaluation PlayerAI vs EnemyAI](#evaluation-playerai-vs-enemyai)
-  - [Play demo](#play-demo)
-  - [Play replay](#play-replay)
+1. [py-hatetris](#py-hatetris)
+   1. [Make a virtual environment](#make-a-virtual-environment)
+      1. [For Ubuntu](#for-ubuntu)
+      2. [For powershell](#for-powershell)
+      3. [For Docker](#for-docker)
+   2. [Train](#train)
+      1. [Setup HatetrisAI](#setup-hatetrisai)
+      2. [Enable Discord WebHook notification](#enable-discord-webhook-notification)
+   3. [Logging on Tensorboard](#logging-on-tensorboard)
+   4. [EnemyAI vs Human](#enemyai-vs-human)
+   5. [Evaluation PlayerAI vs EnemyAI](#evaluation-playerai-vs-enemyai)
+   6. [Play demo](#play-demo)
+   7. [Play replay](#play-replay)
 
 ## Make a virtual environment
 
 - Dependency bug: https://github.com/openai/gym/issues/3176
-- pip freeze -> 
+- pip freeze -> requirements/freeze.txt
 
 ### For Ubuntu
 
