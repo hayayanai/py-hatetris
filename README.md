@@ -19,7 +19,6 @@ HATETRIS (HardDrop only) impl in Python>=3.10 and C++
 ## Make a virtual environment
 
 - Dependency bug: https://github.com/openai/gym/issues/3176
-- pip freeze -> requirements/freeze.txt
 
 ### For Ubuntu
 
